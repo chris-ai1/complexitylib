@@ -1127,6 +1127,7 @@ public import Complexity.Computability.WordRAM.Structured
 public import Complexity.Computability.WordRAM.Time
 public import Complexity.Computability.WordRAM.Trace
 public import Complexity.Crypto.Computational.Basic
+public import Complexity.Crypto.Computational.Commitment
 public import Complexity.Crypto.Computational.GGM.Circuit
 public import Complexity.Crypto.Computational.GGM.Evaluation
 public import Complexity.Crypto.Computational.GGM.Expansion
@@ -1200,6 +1201,7 @@ public import Complexity.Crypto.Computational.PseudorandomFunction.TruthTable
 public import Complexity.Crypto.Computational.PseudorandomGenerator
 public import Complexity.Crypto.Computational.Stretch
 public import Complexity.Crypto.Computational.UniformChoice
+public import Complexity.Crypto.Computational.ZeroKnowledge
 public import Complexity.Crypto.Game
 public import Complexity.Crypto.Game.Hybrid
 public import Complexity.Crypto.Game.Statistical
