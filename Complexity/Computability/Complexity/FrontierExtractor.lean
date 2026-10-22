@@ -10,11 +10,11 @@ module
 public import Complexity.Init
 public import Complexity.Computability.Circuit.Boolean.AffineDisperser
 public import Complexity.Computability.Circuit.Frontier.Extractor
+public import Complexity.Computability.Complexity.AffineDisperser
 public import Complexity.Computability.Complexity.Classes.P
 public import Complexity.Computability.Machines.Turing.MultiTape.Complexity.PolyTime.BitString
 public import Cslib.Computability.Languages.Slice
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import Mathlib.Data.List.GetD
 
 /-!
 # Explicit sumset extractors in `P` and `(4.56249 - ε) N` circuit lower bounds over `B₂`
@@ -97,44 +97,6 @@ open Cslib.BitString Cslib.Complexity Filter Asymptotics Real Turing.MultiTapeTM
 open Turing.MultiTapeTM.ComputableTidilyInPolyTime
 
 /-! ### Uniformity bridge for `Language.ofSlices` and `balancePadFamily` -/
-
-/-- For any Boolean family `f : ∀ N, BitString N → Bool`, `Language.ofSlices f` as a set of bit
-lists is `{x | f x.length (BitString.ofList x.length x) = true}`. -/
-theorem ofSlices_eq_setOf_ofList (f : ∀ N, BitString N → Bool) :
-    (Language.ofSlices f : Set (List Bool)) =
-      {x : List Bool | f x.length (BitString.ofList x.length x) = true} := by
-  refine Set.ext fun x => ?_
-  change f x.length (fun i => x[i]) = true ↔ f x.length (BitString.ofList x.length x) = true
-  congr! 2
-  funext i
-  rw [BitString.ofList, List.getD_eq_getElem _ _ i.2, Fin.getElem_fin]
-
-/-- **`Language.ofSlices f` is in `P`** if and only if its list evaluator
-`fun x => f x.length (BitString.ofList x.length x)` is tidily computable in polynomial time. -/
-theorem ofSlices_mem_P_iff {f : ∀ N, BitString N → Bool} :
-    (Language.ofSlices f : Set (List Bool)) ∈ P encBits ↔
-      ComputableTidilyInPolyTime
-        (fun x : List Bool => f x.length (BitString.ofList x.length x)) encBits encBool := by
-  have hset := ofSlices_eq_setOf_ofList f
-  constructor
-  · rintro ⟨g, hg, hiff⟩
-    have heq : (fun x : List Bool => f x.length (BitString.ofList x.length x)) = g := by
-      funext x
-      have hx : x ∈ (Language.ofSlices f : Set (List Bool)) ↔
-          f x.length (BitString.ofList x.length x) = true := by
-        rw [hset]; rfl
-      exact Bool.eq_iff_iff.mpr (hx.symm.trans (hiff x))
-    exact heq ▸ hg
-  · intro hf
-    exact hset.symm ▸ ⟨_, hf, fun _ => Iff.rfl⟩
-
-/-- If `fun x => f x.length (BitString.ofList x.length x)` is tidily computable in polynomial time,
-then `Language.ofSlices f` belongs to `P encBits`. -/
-theorem ofSlices_mem_P {f : ∀ N, BitString N → Bool}
-    (hf : ComputableTidilyInPolyTime
-      (fun x : List Bool => f x.length (BitString.ofList x.length x)) encBits encBool) :
-    (Language.ofSlices f : Set (List Bool)) ∈ P encBits :=
-  ofSlices_mem_P_iff.mpr hf
 
 /-- **Projection of a multi-bit polynomial-time evaluator to its first output bit.** If a multi-bit
 extractor is computed on bit lists by `eval : List Bool → List Bool` in polynomial time and `f N`
@@ -375,5 +337,11 @@ theorem exists_mem_P_eventually_lt_size_of_sumsetDisperser
     with N hN C hC
   rw [Language.slice_ofSlices] at hC
   exact hN fullInterpretation {true} C (hC.decides {true})
+
+@[deprecated (since := "2026-10-21")]
+alias ofSlices_eq_setOf_ofList := Cslib.Complexity.ofSlices_eq_setOf_ofList
+@[deprecated (since := "2026-10-21")]
+alias ofSlices_mem_P_iff := Cslib.Complexity.ofSlices_mem_P_iff
+@[deprecated (since := "2026-10-21")] alias ofSlices_mem_P := Cslib.Complexity.ofSlices_mem_P
 
 end Cslib.Circuits.Frontier

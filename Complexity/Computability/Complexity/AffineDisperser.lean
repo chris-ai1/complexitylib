@@ -73,6 +73,50 @@ is below `N / 2`, as it is for instance at `N = 2 ^ 70`.
 
 @[expose] public section
 
+namespace Cslib.Complexity
+
+open Turing.MultiTapeTM
+
+/-- For any Boolean family `f : ∀ N, BitString N → Bool`, `Language.ofSlices f` as a set of bit
+lists is `{x | f x.length (BitString.ofList x.length x) = true}`. -/
+theorem ofSlices_eq_setOf_ofList (f : ∀ N, BitString N → Bool) :
+    (Language.ofSlices f : Set (List Bool)) =
+      {x : List Bool | f x.length (BitString.ofList x.length x) = true} := by
+  refine Set.ext fun x => ?_
+  change f x.length (fun i => x[i]) = true ↔ f x.length (BitString.ofList x.length x) = true
+  congr! 2
+  funext i
+  rw [BitString.ofList, List.getD_eq_getElem _ _ i.2, Fin.getElem_fin]
+
+/-- **`Language.ofSlices f` is in `P`** if and only if its list evaluator
+`fun x => f x.length (BitString.ofList x.length x)` is tidily computable in polynomial time. -/
+theorem ofSlices_mem_P_iff {f : ∀ N, BitString N → Bool} :
+    (Language.ofSlices f : Set (List Bool)) ∈ P encBits ↔
+      ComputableTidilyInPolyTime
+        (fun x : List Bool => f x.length (BitString.ofList x.length x)) encBits encBool := by
+  have hset := ofSlices_eq_setOf_ofList f
+  constructor
+  · rintro ⟨g, hg, hiff⟩
+    have heq : (fun x : List Bool => f x.length (BitString.ofList x.length x)) = g := by
+      funext x
+      have hx : x ∈ (Language.ofSlices f : Set (List Bool)) ↔
+          f x.length (BitString.ofList x.length x) = true := by
+        rw [hset]; rfl
+      exact Bool.eq_iff_iff.mpr (hx.symm.trans (hiff x))
+    exact heq ▸ hg
+  · intro hf
+    exact hset.symm ▸ ⟨_, hf, fun _ => Iff.rfl⟩
+
+/-- If `fun x => f x.length (BitString.ofList x.length x)` is tidily computable in polynomial time,
+then `Language.ofSlices f` belongs to `P encBits`. -/
+theorem ofSlices_mem_P {f : ∀ N, BitString N → Bool}
+    (hf : ComputableTidilyInPolyTime
+      (fun x : List Bool => f x.length (BitString.ofList x.length x)) encBits encBool) :
+    (Language.ofSlices f : Set (List Bool)) ∈ P encBits :=
+  ofSlices_mem_P_iff.mpr hf
+
+end Cslib.Complexity
+
 namespace Cslib.AffineDisperser
 
 open Cslib.Circuits Filter Turing.MultiTapeTM
@@ -117,16 +161,8 @@ theorem slice_explicitDisperserLanguage (N : ℕ) :
 
 /-- **The language of the explicit disperser is in `P`**, with words encoded as themselves. -/
 theorem explicitDisperserLanguage_mem_P :
-    (explicitDisperserLanguage : Set (List Bool)) ∈ Complexity.P encBits := by
-  have h : (explicitDisperserLanguage : Set (List Bool)) =
-      {x | explicitDisperser x.length (BitString.ofList x.length x) = true} := by
-    refine Set.ext fun x => ?_
-    change explicitDisperser x.length (fun i => x[i]) = true ↔
-      explicitDisperser x.length (BitString.ofList x.length x) = true
-    congr! 2
-    funext i
-    rw [BitString.ofList, List.getD_eq_getElem _ _ i.2, Fin.getElem_fin]
-  exact h ▸ setOf_explicitDisperser_mem_P
+    (explicitDisperserLanguage : Set (List Bool)) ∈ Complexity.P encBits :=
+  Complexity.ofSlices_mem_P computableTidilyInPolyTime_explicitDisperser
 
 /-- **An explicit function in `P` with `B₂` circuit complexity `3.5 N - O(N / log N)`**, after
 [MishraSanthanam2026]: some language over `Bool` in `P` (the language of the explicit disperser)
