@@ -5,44 +5,41 @@ completed reference developments.
 
 ## Highest priorities
 
-1. **Goldreich–Micali–Wigderson zero knowledge.** If one-way functions exist, every language in NP
-   has an interactive computational zero-knowledge proof system, secure against probabilistic
-   polynomial-time verifiers with auxiliary input.
-2. **Rompel’s signature theorem.** One-way functions exist if and only if digital signature schemes
+1. **Rompel’s signature theorem.** One-way functions exist if and only if digital signature schemes
    exist that are existentially unforgeable under adaptive chosen-message attacks by probabilistic
    polynomial-time adversaries.
-3. **Gentry’s bootstrapping theorem.** A semantically secure, bootstrappable encryption scheme
+2. **Gentry’s bootstrapping theorem.** A semantically secure, bootstrappable encryption scheme
    yields compact leveled fully homomorphic encryption for every polynomially bounded circuit
    depth. Here bootstrappability requires homomorphic evaluation of suitably augmented decryption
    circuits. With an appropriate additional circular-security assumption, the construction yields a
    fixed-key fully homomorphic scheme without a predetermined depth bound.
-4. **Completeness of oblivious transfer.** In the ideal oblivious-transfer hybrid model, every
+3. **Completeness of oblivious transfer.** In the ideal oblivious-transfer hybrid model, every
    polynomial-time multiparty functionality admits a protocol secure against static malicious
    corruptions, with security defined by real/ideal simulation and allowing abort, under the
    standard communication assumptions. This does not guarantee fairness or delivery of outputs.
-5. **Håstad’s optimal MAX-E3SAT hardness.** For every fixed ε with 0 < ε < 1/8, it is NP-hard to
+4. **Håstad’s optimal MAX-E3SAT hardness.** For every fixed ε with 0 < ε < 1/8, it is NP-hard to
    distinguish satisfiable E3-CNF formulas from E3-CNF formulas for which every assignment
    satisfies at most a 7/8 + ε fraction of clauses.
-6. **Williams’s ACC lower bound.** NEXP ⊄ ACC⁰: some language in nondeterministic exponential time
+5. **Williams’s ACC lower bound.** NEXP ⊄ ACC⁰: some language in nondeterministic exponential time
    has no polynomial-size, constant-depth nonuniform circuit family over unbounded-fan-in AND, OR,
    NOT and modular-counting gates with fixed moduli.
-7. **Valiant’s algebraic completeness theorem.** Over every field of characteristic different from
+6. **Valiant’s algebraic completeness theorem.** Over every field of characteristic different from
    two, the permanent polynomial family is VNP-complete under polynomially bounded projections:
    every VNP family is obtained from a polynomially larger permanent by substituting variables and
    field constants.
-8. **Kabanets–Impagliazzo derandomization-to-lower-bounds theorem.** If polynomial identity testing
+7. **Kabanets–Impagliazzo derandomization-to-lower-bounds theorem.** If polynomial identity testing
    for arithmetic circuits over the integers has a deterministic polynomial-time algorithm, then
    either NEXP ⊄ P/poly or the permanent family has no polynomial-size arithmetic circuits over the
    integers.
-9. **Babai–Fortnow–Lund multiprover theorem.** MIP = NEXP: a language has a classical multiprover
+8. **Babai–Fortnow–Lund multiprover theorem.** MIP = NEXP: a language has a classical multiprover
    interactive proof with a probabilistic polynomial-time verifier and constant
    completeness–soundness gap if and only if it belongs to nondeterministic exponential time. The
    provers cannot communicate during the protocol.
-10. **Regev’s worst-case-to-average-case reduction.** For suitable modulus q and Gaussian noise
-    rate α satisfying αq > 2√n, an efficient algorithm for search-LWE in dimension n yields a
-    quantum polynomial-time algorithm for worst-case GapSVP and SIVP with approximation factor
-    Õ(n/α). The noise distribution, modulus restrictions and quantum reduction are part of the
-    theorem.
+9. **Regev’s worst-case-to-average-case reduction.** For suitable modulus q and Gaussian noise
+   rate α satisfying αq > 2√n, an efficient algorithm for search-LWE in dimension n yields a
+   quantum polynomial-time algorithm for worst-case GapSVP and SIVP with approximation factor
+   Õ(n/α). The noise distribution, modulus restrictions and quantum reduction are part of the
+   theorem.
 
 ## Long-term coverage and reuse
 
@@ -158,12 +155,12 @@ developments, not assertions that every prerequisite is missing or assignments t
 | Structural complexity | Time/space and exponential hierarchies; oracle and advice classes; unambiguous and promise classes; completeness, padding, self-reducibility, Ladner's theorem, relativization and oracle separations. Preserve each reduction's resource bound. |
 | Space and alternation | Build on native `NPSPACE = PSPACE`, TQBF completeness, `NL ⊆ P`, [PH ⊆ PSPACE](Complexity/Computability/Complexity/Classes/Inclusions.lean) and [AP = PSPACE](Complexity/Computability/Complexity/Classes/Alternation/Savitch.lean). Extend the [machine-class milestones](#machine-class-milestones), alternating time/space classes and bounded-alternation characterizations of PH. Distinguish polynomial-space simulation from sharp bounds for sublinear space. |
 | Counting and modular classes | Build on `#P`, `GapP`, `PP`, [parity-P](Complexity/Computability/Complexity/Classes/ParityP.lean) and [Toda's PH ⊆ P^#P theorem](Complexity/Computability/Complexity/Classes/Toda.lean), with a fixed polynomial-time program correct against every oracle answering the counting function's bits. Extend counting reductions and machine characterizations, permanent completeness, modular/counting hierarchies and the oracle-algorithm form of Stockmeyer approximate counting. |
-| Interactive and probabilistic proofs | [IP ⊆ PSPACE](Complexity/Computability/Complexity/Classes/IP/PSPACE.lean) is proved for the strict polynomial-time, private-coin verifier model. [IP = PSPACE](Complexity/Computability/Complexity/Classes/IP/Shamir.lean) is proved, with a machine-certified Shamir–Shen-style verifier for TQBF; develop Arthur–Merlin classes, public/private-coin transformations, multiprover systems, zero knowledge and simulation. Reuse the existing PCP and probabilistic foundations. |
+| Interactive and probabilistic proofs | [IP ⊆ PSPACE](Complexity/Computability/Complexity/Classes/IP/PSPACE.lean) is proved for the strict polynomial-time, private-coin verifier model. [IP = PSPACE](Complexity/Computability/Complexity/Classes/IP/Shamir.lean) is proved, with a machine-certified Shamir–Shen-style verifier for TQBF, and [computational zero-knowledge proofs for NP](Complexity/Crypto/Computational/ZeroKnowledge.lean) (Goldreich–Micali–Wigderson) are proved from one-way functions; develop Arthur–Merlin classes, public/private-coin transformations, multiprover systems, statistical/perfect zero knowledge and sequential soundness amplification. Reuse the existing PCP and probabilistic foundations. |
 | Boolean circuits and parallel computation | Complete the [Jukna coverage](#jukna-coverage), uniform/nonuniform NC/AC/TC and related classes, circuit-to-machine bridges, algorithm-to-lower-bound arguments and barriers such as natural proofs and algebrization. |
 | Algebraic and arithmetic complexity | Build on [VP and p-projections](Complexity/Computability/Circuit/Arithmetic/VP.lean), [VNP and VP ⊆ VNP](Complexity/Computability/Circuit/Arithmetic/VNP.lean), and [determinant ∈ VP](Complexity/Computability/Circuit/Arithmetic/Determinant.lean) over commutative rings. Prove permanent VNP-completeness with its characteristic assumptions, extend formula/branching-program models, identity testing, hitting sets, tensor and rank methods, and certify uniform construction costs separately from gate counts. |
 | Approximation and constraint satisfaction | Gap and approximation-preserving reductions, APX/PTAS/FPTAS, canonical inapproximability consequences of PCP, CSP classifications and relaxation gaps. State assumptions such as the Unique Games Conjecture explicitly. |
 | Pseudorandomness and coding | Hardness versus randomness, space-bounded generators, extractors/condensers, limited independence, explicit expanders, and list/local decoding. Separate finite combinatorial guarantees from uniform construction and decoding costs. |
-| Complexity-theoretic cryptography | One-way functions imply SAT ∉ P and SAT ∉ BPP, and MCSP ∈ BPP rules them out (Kabanets–Cai; [OneWay/MCSP](Complexity/Crypto/Computational/OneWay/MCSP.lean)). Extend the existing OWF/PRG/PRF results with reusable adaptive reductions, commitments, zero knowledge, hard-core and hardness-amplification methods, and connections to learning and average-case hardness. |
+| Complexity-theoretic cryptography | One-way functions imply SAT ∉ P and SAT ∉ BPP, and MCSP ∈ BPP rules them out (Kabanets–Cai; [OneWay/MCSP](Complexity/Crypto/Computational/OneWay/MCSP.lean)). [Naor bit commitments](Complexity/Crypto/Computational/Commitment.lean) and [Goldreich–Micali–Wigderson zero knowledge for NP](Complexity/Crypto/Computational/ZeroKnowledge.lean) are proved from one-way functions. Extend the existing OWF/PRG/PRF/commitment/ZK results with digital signatures, encryption, hardness-amplification methods, and connections to learning and average-case hardness. |
 | Communication, queries and data structures | Randomized and multiparty protocols, discrepancy and information complexity, direct-sum/product results, lifting theorems, and reductions to streaming, sketching and cell-probe lower bounds. Reuse upstream query models. |
 | Proof complexity | Build on [Cook–Reckhow systems and simulations](Complexity/Logics/Propositional/ProofSystem.lean), including the polynomially bounded-system characterization of NP = coNP, the [resolution size–width tradeoff](Complexity/Logics/Propositional/Resolution/SizeWidth.lean), [tree-like resolution/DPLL search-tree certificates](Complexity/Logics/Propositional/Resolution/TreeLike.lean), [Tseitin formulas on expanders](Complexity/Logics/Propositional/Resolution/TseitinExpander.lean) and [Haken's pigeonhole lower bound](Complexity/Logics/Propositional/Resolution/Pigeonhole.lean). Extend proof-space lower bounds, Frege, cutting planes, polynomial calculus and sum-of-squares. The certificate correspondence does not certify a DPLL solver's runtime. |
 | Average-case complexity and learning | Uniform-distribution learning on CSLib's PAC API, the LMN low-degree algorithm and Kushilevitz–Mansour with membership queries are [proved](Complexity/MachineLearning/UniformLearning/KushilevitzMansour.lean); running times are not machine-certified. Distributional problems and reductions, samplability, average-to-worst-case connections, PAC/agnostic/SQ learning, learning lower bounds, compression and refutation. Existing cryptographic learners are starting points, not coverage of learning theory. |
