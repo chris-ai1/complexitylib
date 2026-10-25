@@ -69,7 +69,7 @@ theorem length_proofQueries (width : ℕ) (edge : Edge C) :
   simp [proofQueries, two_mul]
 
 /-- Reading the query list returns exactly the two endpoint bit blocks, including repeated bits. -/
-theorem proofVerdict_answers (width : ℕ) (decode : (Fin width → Bool) → α)
+private theorem proofVerdict_answers (width : ℕ) (decode : (Fin width → Bool) → α)
     (eval : C → α → α → Bool) (edge : Edge C) (proof : List Bool) :
     edge.proofVerdict width decode eval (PCPVerifier.answers proof (edge.proofQueries width)) =
       eval edge.constraint (decode fun i => proof.getD (width * edge.src + i.val) false)
@@ -156,7 +156,7 @@ def proofOfLabels (width vertices : ℕ) (encode : α → Fin width → Bool) (l
   List.ofFn (BitString.blocksEquiv.symm (fun vertex : Fin vertices => encode (labels vertex)))
 
 /-- Every declared vertex recovers its original label from the packed proof. -/
-theorem proofLabels_proofOfLabels (width vertices : ℕ)
+private theorem proofLabels_proofOfLabels (width vertices : ℕ)
     (encode : α → Fin width → Bool) (decode : (Fin width → Bool) → α)
     (hdecode : Function.LeftInverse decode encode) (labels : ℕ → α)
     {vertex : ℕ} (hvertex : vertex < vertices) :
