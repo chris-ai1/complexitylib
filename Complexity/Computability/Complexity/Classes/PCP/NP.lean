@@ -79,7 +79,7 @@ private theorem enum_coins (hV : V.PolyTime enc)
     exact Nat.mul_le_mul (Nat.pow_le_pow_right (by decide) (hcoins a)) (by lia)
 
 /-- The complete address table charges every enumerated word and binary address. -/
-theorem isPolyTime_queryTable (hV : V.PolyTime enc)
+private theorem isPolyTime_queryTable (hV : V.PolyTime enc)
     (hcoins : ∀ a, V.coins a ≤ c * (Nat.log 2 (enc a).length + 1)) :
     ComputableInPolyTime V.queryTable enc (encList encNat) := by
   refine .of_tidy ?_
