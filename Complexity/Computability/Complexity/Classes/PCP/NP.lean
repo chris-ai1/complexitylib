@@ -31,6 +31,8 @@ in the soundness argument, never by the polynomial-time verifier.
 
 ## Main results
 
+* `PCPVerifier.isPolyTime_queryTable`: the complete address table is computable in polynomial
+  time under the logarithmic coin bound.
 * `PCPVerifier.isPolyTime_tableVerifier`: uniform efficiency, including malformed tables.
 * `PCPVerifier.tableVerifier_complete`, `PCPVerifier.tableVerifier_sound`: exact proof transfer.
 * `Cslib.Complexity.PCP_log_subset_NP`: logarithmic-randomness PCP is contained in NP.
@@ -79,7 +81,7 @@ private theorem enum_coins (hV : V.PolyTime enc)
     exact Nat.mul_le_mul (Nat.pow_le_pow_right (by decide) (hcoins a)) (by lia)
 
 /-- The complete address table charges every enumerated word and binary address. -/
-private theorem isPolyTime_queryTable (hV : V.PolyTime enc)
+theorem isPolyTime_queryTable (hV : V.PolyTime enc)
     (hcoins : ∀ a, V.coins a ≤ c * (Nat.log 2 (enc a).length + 1)) :
     ComputableInPolyTime V.queryTable enc (encList encNat) := by
   refine .of_tidy ?_
