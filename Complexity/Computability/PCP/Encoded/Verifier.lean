@@ -35,6 +35,10 @@ large unary indices. The alphabet decoder and block width are fixed before the r
   binary query indices, and verdict on arbitrary inputs.
 * `Cslib.PCP.Encoded.Graph.edgeVerifier_accepts`: the exact constraint checked for every proof.
 * `Cslib.PCP.Encoded.Graph.accepts_proofOfLabels`: a satisfying labelling gives a finite proof.
+* `Cslib.PCP.Encoded.Edge.proofVerdict_answers`: the verdict on the answers to `proofQueries` is
+  the constraint evaluated on the two decoded endpoint blocks.
+* `Cslib.PCP.Encoded.Graph.proofLabels_proofOfLabels`: every declared vertex recovers its label from
+  the packed proof.
 
 ## References
 
@@ -69,7 +73,7 @@ theorem length_proofQueries (width : ℕ) (edge : Edge C) :
   simp [proofQueries, two_mul]
 
 /-- Reading the query list returns exactly the two endpoint bit blocks, including repeated bits. -/
-private theorem proofVerdict_answers (width : ℕ) (decode : (Fin width → Bool) → α)
+theorem proofVerdict_answers (width : ℕ) (decode : (Fin width → Bool) → α)
     (eval : C → α → α → Bool) (edge : Edge C) (proof : List Bool) :
     edge.proofVerdict width decode eval (PCPVerifier.answers proof (edge.proofQueries width)) =
       eval edge.constraint (decode fun i => proof.getD (width * edge.src + i.val) false)
@@ -156,7 +160,7 @@ def proofOfLabels (width vertices : ℕ) (encode : α → Fin width → Bool) (l
   List.ofFn (BitString.blocksEquiv.symm (fun vertex : Fin vertices => encode (labels vertex)))
 
 /-- Every declared vertex recovers its original label from the packed proof. -/
-private theorem proofLabels_proofOfLabels (width vertices : ℕ)
+theorem proofLabels_proofOfLabels (width vertices : ℕ)
     (encode : α → Fin width → Bool) (decode : (Fin width → Bool) → α)
     (hdecode : Function.LeftInverse decode encode) (labels : ℕ → α)
     {vertex : ℕ} (hvertex : vertex < vertices) :
