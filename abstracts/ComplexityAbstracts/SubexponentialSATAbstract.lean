@@ -172,8 +172,8 @@ noncomputable def interpolationScale (n : ℕ) : ℝ :=
   n * Real.log (Real.log ((n : ℝ) + 16)) ^ 2 / Real.sqrt (Real.log ((n : ℝ) + 16))
 
 /-- For each fixed width `k`, one machine counts the satisfying assignments of every width-`k`
-formula in time `2 ^ (A · n (log log n)² / √log n) · poly(L)` and space `poly(L)`, where `n` is the
-number of variables and `L` the encoding length. -/
+formula in time `2 ^ (A · n (log log n)² / sqrt(log n)) · poly(L)` and space `poly(L)`, where `n`
+is the number of variables and `L` the encoding length. -/
 theorem exact_count (k : ℕ) :
     ∃ (count : Formula → ℕ) (A e b : ℕ),
       (∀ φ, HasWidth k φ → count φ = modelCount φ) ∧
