@@ -59,23 +59,36 @@ namespace ComplexityAbstracts.SubexponentialSATAbstract
 
 /-! ## Formulas and model counting
 
-A literal `(v, b)` asserts that variable `v` has Boolean value `b`. Clauses are disjunctions
-and formulas are conjunctions; repeated literals and clauses are permitted. A width bound
-counts literal occurrences, including repetitions.
+A literal is a variable or its negation. Clauses are disjunctions of literals and formulas are
+conjunctions of clauses; repeated literals and clauses are permitted. A width bound counts literal
+occurrences, including repetitions.
 -/
 
-/-- A CNF formula is a list of clauses, each a list of variable/polarity pairs. -/
-abbrev Formula := List (List (ℕ × Bool))
+/-- A literal: the variable `var`, positive or negated. It is the pair `(var, positive)`. -/
+abbrev Literal := ℕ × Bool
 
-/-- Evaluate a formula: every clause must contain a literal of the assigned polarity. -/
+/-- The variable of a literal. -/
+abbrev Literal.var (l : Literal) : ℕ := l.1
+
+/-- Whether the literal is the variable itself (`true`) or its negation (`false`). -/
+abbrev Literal.positive (l : Literal) : Bool := l.2
+
+/-- A clause is a disjunction of literals. -/
+abbrev Clause := List Literal
+
+/-- A CNF formula is a conjunction of clauses. -/
+abbrev Formula := List Clause
+
+/-- Evaluate a formula: every clause must contain a literal that is true under `σ`, that is,
+whose variable's value matches its polarity. -/
 def eval (φ : Formula) (σ : ℕ → Bool) : Bool :=
-  φ.all fun clause => clause.any fun literal => σ literal.1 == literal.2
+  φ.all fun clause => clause.any fun literal => σ literal.var == literal.positive
 
 /-- A formula is satisfiable when some total Boolean assignment makes it true. -/
 def Satisfiable (φ : Formula) : Prop := ∃ σ : ℕ → Bool, eval φ σ = true
 
 /-- Variables in occurrence order, retaining repetitions. -/
-def vars (φ : Formula) : List ℕ := φ.flatten.map Prod.fst
+def vars (φ : Formula) : List ℕ := φ.flatten.map Literal.var
 
 /-- The number of distinct occurring variables, independent of their numeric labels. -/
 def numVars (φ : Formula) : ℕ := (vars φ).toFinset.card
@@ -196,7 +209,7 @@ end ComplexityAbstracts.SubexponentialSATAbstract
 
 /--
 info: abstract audit passed for `ComplexityAbstracts.SubexponentialSATAbstract`:
-21 root declarations, 135 dependencies checked
+25 root declarations, 139 dependencies checked
 -/
 #guard_msgs (whitespace := lax) in
 #check_abstract ComplexityAbstracts.SubexponentialSATAbstract allowing [
