@@ -58,6 +58,8 @@ Construction provenance is recorded in
 
 namespace ComplexityAbstracts.SubexponentialSATAbstract
 
+open ComplexityTests.Abstracts.Encoding
+
 /-! ## Formulas and model counting
 
 A literal is a variable or its negation. Clauses are disjunctions of literals and formulas are
@@ -113,9 +115,7 @@ encoded by the empty word. The shared foundation spells out all framing and list
 /-- Encode each literal as a framed binary index followed by its polarity bit; frame the
 literals within clauses and the clauses within the formula. This is the native `encCNF`. -/
 def encCNF : Formula ↪ List Bool :=
-  ComplexityTests.Abstracts.Encoding.encList (ComplexityTests.Abstracts.Encoding.encList
-    (ComplexityTests.Abstracts.Encoding.encPair ComplexityTests.Abstracts.Encoding.encNat
-      ComplexityTests.Abstracts.Encoding.encBool))
+  encList (encList (encPair encNat encBool))
 
 /-- **The encoding is concise.** Its length is exactly one bit per clause, plus `10 + 8 · b` bits
 for each literal occurrence, where `b = Nat.size v` is the number of binary digits of its variable
@@ -199,7 +199,7 @@ is the number of variables and `L` the encoding length. -/
 theorem exact_count (k : ℕ) :
     ∃ (count : Formula → ℕ) (A e b : ℕ),
       (∀ φ, HasWidth k φ → count φ = modelCount φ) ∧
-      Turing.MultiTapeTM.ComputableInO count encCNF ComplexityTests.Abstracts.Encoding.encNat
+      Turing.MultiTapeTM.ComputableInO count encCNF encNat
         (fun φ => ⌈(2 : ℝ) ^ (A * interpolationScale (numVars φ))⌉₊ * ((encCNF φ).length + 1) ^ e)
         (fun φ => ((encCNF φ).length + 1) ^ b) :=
   SubexponentialSATBridge.exact_count k
