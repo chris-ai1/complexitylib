@@ -183,6 +183,20 @@ index links to canonical definitions rather than keeping a second set.
 - Alternating time and space classes and bounded-alternation characterizations of PH; sharp
   bounds for sublinear space, distinct from polynomial-space simulation.
 
+### Reducibilities and the structure of complete sets
+
+- **Reducibilities** ([#1351]): one-one, many-one, bounded and general truth-table (`k`-tt,
+  disjunctive, conjunctive, positive) and Turing reductions, each in polynomial time and in
+  logarithmic space, with the inclusion hierarchy of Ladner, Lynch and Selman. Logspace Turing
+  reductions need an oracle model with a query tape that is not charged to the space bound.
+- **Autoreducibility and mitoticity:** `m`-autoreducible equals `m`-mitotic, so every NP-complete
+  set splits into two NP-complete sets (Glaßer, Pavan, Selman and Zhang); separations of complexity
+  classes by autoreducibility (Buhrman, Fortnow, van Melkebeek and Torenvliet).
+- **Berman–Hartmanis:** p-isomorphism and paddability; paddable NP-complete sets are p-isomorphic,
+  so the standard NP-complete problems are all p-isomorphic to SAT; the isomorphism conjecture as
+  a hypothesis; Mahaney's theorem that a sparse NP-complete set implies `P = NP`; and the
+  isomorphism theorem for sets complete under AC⁰ reductions (Agrawal, Allender and Rudich).
+
 ### Counting and modular classes
 
 - The Another Solution Problem (ASP) framework: solution-preserving reductions with explicit
@@ -513,4 +527,5 @@ not planned, not as proved.
 [#1104]: https://github.com/cslib-community/complexitylib/issues/1104
 [#1124]: https://github.com/cslib-community/complexitylib/issues/1124
 [#1155]: https://github.com/cslib-community/complexitylib/issues/1155
+[#1351]: https://github.com/cslib-community/complexitylib/issues/1351
 [#1394]: https://github.com/cslib-community/complexitylib/issues/1394
