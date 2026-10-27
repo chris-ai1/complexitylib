@@ -19,11 +19,12 @@ import Mathlib.Data.Fintype.Pi
 The four theorems below are proved through `SubexponentialSATBridge` from the unconditional
 native counting endpoint.
 
-The primary result is one deterministic machine for each fixed clause width, counting
-exactly over the declared variables. Its running time is exponential in a constant times
-`n (log log (n + 16))² / sqrt (log (n + 16))`, multiplied by a polynomial in the original encoded
-input length. Its work space, including a separate charge for the encoded output, is
-polynomial in that same external length. This is the interpolation-scale route of Sections 3–6 and
+The primary result is one deterministic machine for each fixed clause width that computes the
+number of satisfying assignments of every formula of that width. With `n` the number of distinct
+variables, its running time is exponential in a constant times
+`n (log log (n + 16))² / sqrt (log (n + 16))`, multiplied by a polynomial in the encoded formula
+length. Its work space, including a separate charge for the encoded output, is polynomial in that
+same length. This is the interpolation-scale route of Sections 3–6 and
 Proposition 6.4 of [OpenAI2026ETH], not the sharper Theorem 1.1 / Appendix D bound.
 
 The definitions here display the existing CNF semantics, encodings and fine-grained classes;
@@ -56,7 +57,7 @@ Construction provenance is recorded in
 
 namespace ComplexityAbstracts.SubexponentialSATAbstract
 
-/-! ## Formulas and declared-variable counting
+/-! ## Formulas and model counting
 
 A literal `(v, b)` asserts that variable `v` has Boolean value `b`. Clauses are disjunctions
 and formulas are conjunctions; repeated literals and clauses are permitted. A width bound
@@ -79,27 +80,20 @@ def vars (φ : Formula) : List ℕ := φ.flatten.map Prod.fst
 /-- The number of distinct occurring variables, independent of their numeric labels. -/
 def numVars (φ : Formula) : ℕ := (vars φ).toFinset.card
 
-/-- Count satisfying assignments on the declared range `{0, …, n - 1}`, extending by `false`
-outside it. Valid inputs below require every occurring variable to lie in that range. -/
-def modelCountOn (φ : Formula) (n : ℕ) : ℕ :=
-  (Finset.univ.filter fun σ : (Finset.range n) → Bool =>
-    eval φ (fun v => if h : v ∈ Finset.range n then σ ⟨v, h⟩ else false) = true).card
+/-- The number of satisfying assignments of `φ`: assignments of its distinct variables, each
+variable counted once, that make `φ` true. -/
+def modelCount (φ : Formula) : ℕ :=
+  (Finset.univ.filter fun σ : (vars φ).toFinset → Bool =>
+    eval φ (fun v => if h : v ∈ (vars φ).toFinset then σ ⟨v, h⟩ else false) = true).card
 
-/-- The input has clauses of width at most `k`, with every variable strictly below `n`. -/
-def validDeclaredInput (k n : ℕ) (φ : Formula) : Bool :=
-  (φ.all fun clause => decide (clause.length ≤ k)) &&
-    ((vars φ).all fun v => decide (v < n))
-
-/-- A declared counting instance consists of its variable count and formula. -/
-abbrev Input := ℕ × Formula
+/-- Every clause of `φ` has at most `k` literals. -/
+def HasWidth (k : ℕ) (φ : Formula) : Prop := ∀ clause ∈ φ, clause.length ≤ k
 
 /-! ## Representation details
 
-The external input is `encPair encUnary encCNF (n, φ)`. Its length is
-`2 * n + 1 + (encCNF φ).length`, so even an empty formula retains the cost of its declared
-variables. Literal indices are binary; large or non-dense labels are not silently treated as
-small. A natural output uses canonical binary digits, with zero encoded by the empty word.
-The shared foundation spells out all framing and list conventions.
+The input is the encoded formula `encCNF φ`. Literal indices are binary; large or non-dense
+labels are not silently treated as small. A natural output uses canonical binary digits, with zero
+encoded by the empty word. The shared foundation spells out all framing and list conventions.
 -/
 
 /-- Encode each literal as a framed binary index followed by its polarity bit; frame the
@@ -108,10 +102,6 @@ def encCNF : Formula ↪ List Bool :=
   ComplexityTests.Abstracts.Encoding.encList (ComplexityTests.Abstracts.Encoding.encList
     (ComplexityTests.Abstracts.Encoding.encPair ComplexityTests.Abstracts.Encoding.encNat
       ComplexityTests.Abstracts.Encoding.encBool))
-
-/-- Frame the unary declared-variable count, then append the encoded formula. -/
-def encInput : Input ↪ List Bool :=
-  ComplexityTests.Abstracts.Encoding.encPair ComplexityTests.Abstracts.Encoding.encUnary encCNF
 
 /-! ## Deterministic machine and resource conventions
 
@@ -144,9 +134,9 @@ def DecidableInExpTime {α : Type} (A : Set α) (enc : α ↪ List Bool)
 
 /-! ## The exponential time hypotheses
 
-The decision parameter is the number of distinct occurring variables, not the declared count
-or the largest label. The bridge therefore uses the native dense-relabeling
-correspondence. Zero infimum exponent alone does not assert a polynomial-time algorithm.
+The decision parameter is the number of distinct occurring variables, not the largest label.
+The bridge therefore uses the native dense-relabeling correspondence. Zero infimum exponent alone
+does not assert a polynomial-time algorithm.
 -/
 
 /-- `k`-SAT consists of satisfiable formulas whose clauses have at most `k` literals. -/
@@ -167,33 +157,30 @@ def SETH : Prop :=
 
 /-! ## Exact counting and the exponential time hypotheses
 
-The primary theorem fixes the counter, time and space functions, constants and native machine
-for each `k` before every input. It includes `k = 0, 1`, `n = 0`, empty formulas and empty clauses.
-Invalid width or variable-range inputs return zero. In particular, a valid empty formula returns
-`2^n`, including one assignment when `n = 0`; unused declared variables remain free choices.
+The primary theorem fixes the counter, constants and native machine for each `k` before every
+input. It includes `k = 0, 1`, empty formulas and empty clauses. On formulas with a clause longer
+than `k` the output is unspecified; the time and space bounds still hold there.
 
 The scale uses natural logarithms and a shift by sixteen to cover all natural `n`; this changes
 only constants in the asymptotic bound. It is the scale of Proposition 6.4, not the smaller
-exponent of Theorem 1.1. The proof uses width `max 2 k` internally while retaining the
-original width guard, one inner support normalization and one outer declared-variable correction.
-Those proof details do not weaken the total external contract.
+exponent of Theorem 1.1. The proof relabels the variables densely and runs the native
+declared-variable counter.
 -/
 
 /-- The interpolation-scale exponent, defined at every natural input. -/
 noncomputable def interpolationScale (n : ℕ) : ℝ :=
   n * Real.log (Real.log ((n : ℝ) + 16)) ^ 2 / Real.sqrt (Real.log ((n : ℝ) + 16))
 
-/-- One exact native counter per fixed width, with interpolation-scale
-time and polynomial space in the length of the original declared input. -/
-theorem exact_count :
-  ∀ k : ℕ, ∃ (count : Input → ℕ) (T S : Input → ℕ) (A c e a b : ℕ),
-    Turing.MultiTapeTM.ComputableInO count encInput
-      ComplexityTests.Abstracts.Encoding.encNat T S ∧
-    (∀ x, count x = if validDeclaredInput k x.1 x.2 then modelCountOn x.2 x.1 else 0) ∧
-    (∀ x, (T x : ℝ) ≤ c * ((2 : ℝ) ^ ((A : ℝ) * interpolationScale x.1) *
-      (((encInput x).length : ℝ) + 1) ^ e) + c) ∧
-    (∀ x, S x ≤ a * ((encInput x).length + 1) ^ b) :=
-  SubexponentialSATBridge.exact_count
+/-- For each fixed width `k`, one machine counts the satisfying assignments of every width-`k`
+formula in time `2 ^ (A · n (log log n)² / √log n) · poly(L)` and space `poly(L)`, where `n` is the
+number of variables and `L` the encoding length. -/
+theorem exact_count (k : ℕ) :
+    ∃ (count : Formula → ℕ) (A e b : ℕ),
+      (∀ φ, HasWidth k φ → count φ = modelCount φ) ∧
+      Turing.MultiTapeTM.ComputableInO count encCNF ComplexityTests.Abstracts.Encoding.encNat
+        (fun φ => ⌈(2 : ℝ) ^ (A * interpolationScale (numVars φ))⌉₊ * ((encCNF φ).length + 1) ^ e)
+        (fun φ => ((encCNF φ).length + 1) ^ b) :=
+  SubexponentialSATBridge.exact_count k
 
 /-- The exponential time hypothesis is false. -/
 theorem not_eth : ¬ETH := SubexponentialSATBridge.not_eth
@@ -209,7 +196,7 @@ end ComplexityAbstracts.SubexponentialSATAbstract
 
 /--
 info: abstract audit passed for `ComplexityAbstracts.SubexponentialSATAbstract`:
-23 root declarations, 140 dependencies checked
+21 root declarations, 135 dependencies checked
 -/
 #guard_msgs (whitespace := lax) in
 #check_abstract ComplexityAbstracts.SubexponentialSATAbstract allowing [

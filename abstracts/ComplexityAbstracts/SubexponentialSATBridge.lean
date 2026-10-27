@@ -7,11 +7,12 @@ Authors: OpenAI, Samuel Schlesinger, Anton Kovsharov
 -- upstream: local-only (formal abstract library)
 
 import Complexity.Computability.Complexity.FineGrained.CountingNativeEndpoint
+import Complexity.Computability.Complexity.FineGrained.CountingNativeModelCount
 
 /-! # Bridge for exact subexponential counting and the ETH refutation
 
 Transfer the unconditional native counting endpoint to the abstract. Its list-of-list CNF
-representation, Boolean evaluation, declared-range count, encoding combinators, fine-grained
+representation, Boolean evaluation, model count, encoding combinators, fine-grained
 classes and interpolation scale are definitionally equal to the definitions displayed in
 `SubexponentialSATAbstract.lean`. Thus these four transfers require no semantic weakening,
 additional hypothesis or alternative machine notion. The abstract does not import the native
@@ -25,8 +26,9 @@ bounded-incidence evaluator with its exactness and independent native time/works
 certificates. Its witnesses are uniform for each width. The external validity guard retains the
 original clause width, even though the construction uses `max 2 k` internally. The proof uses
 one inner support normalization and one outer declared-variable correction, accounting for
-every unused declared variable and all small or zero sizes. All resource charges refer to the
-original external encoding.
+every unused declared variable and all small or zero sizes.
+`Cslib.Complexity.CountingNativeEndpoint.exists_modelCounter` restates it on the plain formula by
+dense relabeling, with all resource charges referring to `encCNF φ`.
 
 The native endpoint's dense-relabeling argument supplies the decision consequences for formulas
 with arbitrary natural labels and the occurring-variable parameter. Its SAT exponent and
@@ -46,18 +48,16 @@ namespace ComplexityAbstracts.SubexponentialSATBridge
 
 open Cslib.Complexity Cslib.Logic.PL Turing.MultiTapeTM
 
-/-- The complete native counter contract on the abstract's underlying list representation. -/
+/-- The bounded-width model counter on the abstract's underlying list representation. -/
 theorem exact_count (k : ℕ) :
-    ∃ (count : ℕ × List (List (ℕ × Bool)) → ℕ)
-      (T S : ℕ × List (List (ℕ × Bool)) → ℕ) (A c e a b : ℕ),
-      ComputableInO count (encPair encUnary encCNF) encNat T S ∧
-      (∀ x, count x = if CNF.validDeclaredInput k x.1 x.2 then
-        CNF.modelCountOn x.2 (Finset.range x.1) else 0) ∧
-      (∀ x, (T x : ℝ) ≤ c *
-        ((2 : ℝ) ^ ((A : ℝ) * SubexponentialSAT.interpolationScale x.1) *
-          (((encPair encUnary encCNF x).length : ℝ) + 1) ^ e) + c) ∧
-      (∀ x, S x ≤ a * ((encPair encUnary encCNF x).length + 1) ^ b) :=
-  CountingNativeEndpoint.exists_declaredCounter k
+    ∃ (count : List (List (ℕ × Bool)) → ℕ) (A e b : ℕ),
+      (∀ φ : List (List (ℕ × Bool)), (∀ clause ∈ φ, clause.length ≤ k) →
+        count φ = CNF.modelCount φ) ∧
+      ComputableInO count encCNF encNat
+        (fun φ => ⌈(2 : ℝ) ^ ((A : ℝ) * SubexponentialSAT.interpolationScale (CNF.numVars φ))⌉₊ *
+          ((encCNF φ).length + 1) ^ e)
+        (fun φ => ((encCNF φ).length + 1) ^ b) :=
+  CountingNativeEndpoint.exists_modelCounter k
 
 /-- The native counter refutes the library's Exponential Time Hypothesis. -/
 theorem not_eth : ¬ETH := CountingNativeEndpoint.not_ETH

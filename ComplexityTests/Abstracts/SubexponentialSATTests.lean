@@ -7,14 +7,13 @@ Authors: Samuel Schlesinger
 import ComplexityAbstracts.SubexponentialSATAbstract
 import Complexity.Computability.Complexity.FineGrained
 import Complexity.Computability.Complexity.FineGrained.CountingScale
-import Complexity.Logics.Propositional.CNF.ModelCount.Declared
+import Complexity.Logics.Propositional.CNF.ModelCount
 
 /-! # Semantic checks for the subexponential SAT abstract
 
 These checks identify the displayed definitions with the existing library interfaces and exercise
-declared unused variables, empty cases and invalid inputs. They also exercise the exact counter
-theorem on valid, invalid and unused-variable inputs. The implementation imports stay outside the
-abstract's audited statement surface.
+empty cases and repeated or non-dense variable labels. They also exercise the exact counter
+theorem. The implementation imports stay outside the abstract's audited statement surface.
 -/
 
 namespace ComplexityTests.Abstracts.SubexponentialSATTests
@@ -27,16 +26,11 @@ example (φ : Formula) : Satisfiable φ ↔ Cslib.Logic.PL.CNF.Satisfiable φ :=
 
 example (φ : Formula) : numVars φ = Cslib.Logic.PL.CNF.numVars φ := rfl
 
-example (φ : Formula) (n : ℕ) :
-    modelCountOn φ n = Cslib.Logic.PL.CNF.modelCountOn φ (Finset.range n) := rfl
+example (φ : Formula) : modelCount φ = Cslib.Logic.PL.CNF.modelCount φ := rfl
 
-example (k n : ℕ) (φ : Formula) :
-    validDeclaredInput k n φ = Cslib.Logic.PL.CNF.validDeclaredInput k n φ := rfl
+example (k : ℕ) (φ : Formula) : HasWidth k φ ↔ ∀ c ∈ φ, c.length ≤ k := Iff.rfl
 
 example : encCNF = Cslib.Complexity.encCNF := rfl
-
-example : encInput = Turing.MultiTapeTM.encPair Turing.MultiTapeTM.encUnary
-    Cslib.Complexity.encCNF := rfl
 
 example {α : Type} (A : Set α) (enc : α ↪ List Bool) (T : α → ℝ) :
     DecidableInTimeO A enc T ↔ Cslib.Complexity.DecidableInTimeO A enc T := Iff.rfl
@@ -55,32 +49,22 @@ example : SETH ↔ Cslib.Complexity.SETH := Iff.rfl
 example (n : ℕ) :
     interpolationScale n = Cslib.Complexity.SubexponentialSAT.interpolationScale n := rfl
 
--- Empty formulas retain all declared free variables; the empty assignment is counted once.
-example : modelCountOn [] 0 = 1 := by decide
-example : modelCountOn [] 3 = 8 := by decide
+-- The empty formula has one satisfying assignment (of no variables); an empty clause has none.
+example : modelCount [] = 1 := by decide
+example : modelCount [[]] = 0 := by decide
 
--- An empty clause is unsatisfiable, while a single positive literal leaves two variables free.
-example : modelCountOn [[]] 3 = 0 := by decide
-example : modelCountOn [[(0, true)]] 3 = 4 := by decide
-example : modelCountOn [[(0, true)], [(0, false)]] 3 = 0 := by decide
-
--- Both halves of validity matter, including repetition in the clause-width convention.
-example : validDeclaredInput 0 0 [] = true := by decide
-example : validDeclaredInput 0 0 [[]] = true := by decide
-example : validDeclaredInput 1 1 [[(0, true)]] = true := by decide
-example : validDeclaredInput 1 1 [[(0, true), (0, true)]] = false := by decide
-example : validDeclaredInput 1 1 [[(1, true)]] = false := by decide
-
--- The declared unary header survives even on an empty formula.
-example : (encInput (3, [])).length = 7 := by decide
+-- Variables are counted once each, independent of their labels and repetitions.
+example : modelCount [[(0, true)]] = 1 := by decide
+example : modelCount [[(5, true), (5, true)], [(9, false)]] = 1 := by decide
+example : modelCount [[(0, true), (1, true)]] = 3 := by decide
+example : modelCount [[(0, true)], [(0, false)]] = 0 := by decide
 example : numVars [[(100, true), (100, false)]] = 1 := by decide
 
--- One witness handles all these inputs: empty, unused-variable, contradictory and invalid.
-example : ∃ count : Input → ℕ,
-    count (0, []) = 1 ∧ count (3, [[(0, true)]]) = 4 ∧
-    count (1, [[(0, true)], [(0, false)]]) = 0 ∧
-    count (1, [[(1, true)]]) = 0 ∧ count (1, [[(0, true), (0, true)]]) = 0 := by
-  obtain ⟨count, _, _, _, _, _, _, _, _, hcount, _, _⟩ := exact_count 1
-  refine ⟨count, ?_, ?_, ?_, ?_, ?_⟩ <;> rw [hcount] <;> decide
+-- One witness counts all these width-`2` inputs exactly.
+example : ∃ count : Formula → ℕ,
+    count [] = 1 ∧ count [[(7, true), (3, false)]] = 3 ∧
+    count [[(0, true)], [(0, false)]] = 0 := by
+  obtain ⟨count, _, _, _, hcount, _⟩ := exact_count 2
+  refine ⟨count, ?_, ?_, ?_⟩ <;> rw [hcount _ (by simp [HasWidth])] <;> decide
 
 end ComplexityTests.Abstracts.SubexponentialSATTests
