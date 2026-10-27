@@ -26,6 +26,8 @@ example (φ : Formula) (σ : ℕ → Bool) : eval φ σ = Cslib.Logic.PL.CNF.eva
 
 example (φ : Formula) : Satisfiable φ ↔ Cslib.Logic.PL.CNF.Satisfiable φ := Iff.rfl
 
+example (φ : Formula) : vars φ = (Cslib.Logic.PL.CNF.vars φ).toFinset := rfl
+
 example (φ : Formula) : numVars φ = Cslib.Logic.PL.CNF.numVars φ := rfl
 
 example (φ : Formula) : modelCount φ = Cslib.Logic.PL.CNF.modelCount φ := rfl
