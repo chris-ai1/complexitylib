@@ -16,8 +16,9 @@ import Mathlib.Data.Fintype.Pi
 
 /-! # OpenAI: the Exponential Time Hypothesis is false
 
-The four theorems below are proved through `SubexponentialSATBridge` from the unconditional
-native counting endpoint.
+The four complexity theorems below are proved through `SubexponentialSATBridge` from the
+unconditional native counting endpoint. A fifth theorem, `length_encCNF`, gives the exact length
+of the input encoding.
 
 The primary result is one deterministic machine for each fixed clause width that computes the
 number of satisfying assignments of every formula of that width. With `n` the number of distinct
@@ -116,6 +117,14 @@ def encCNF : Formula ↪ List Bool :=
     (ComplexityTests.Abstracts.Encoding.encPair ComplexityTests.Abstracts.Encoding.encNat
       ComplexityTests.Abstracts.Encoding.encBool))
 
+/-- **The encoding is concise.** Its length is exactly one bit per clause, plus `10 + 8 · b` bits
+for each literal occurrence, where `b = Nat.size v` is the number of binary digits of its variable
+`v`. Thus the input length is linear in the number of literals and logarithmic in the variable
+labels, as for a reasonable encoding in the sense of Garey and Johnson. -/
+theorem length_encCNF (φ : Formula) :
+    (encCNF φ).length = φ.length + (φ.flatten.map fun l => 10 + 8 * Nat.size l.var).sum :=
+  SubexponentialSATBridge.length_encCNF φ
+
 /-! ## Deterministic machine and resource conventions
 
 The upstream model is a deterministic binary multi-tape Turing machine with finitely many
@@ -209,7 +218,7 @@ end ComplexityAbstracts.SubexponentialSATAbstract
 
 /--
 info: abstract audit passed for `ComplexityAbstracts.SubexponentialSATAbstract`:
-25 root declarations, 139 dependencies checked
+26 root declarations, 143 dependencies checked
 -/
 #guard_msgs (whitespace := lax) in
 #check_abstract ComplexityAbstracts.SubexponentialSATAbstract allowing [
