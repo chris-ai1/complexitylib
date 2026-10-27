@@ -83,7 +83,8 @@ private abbrev encFullInput := encPair encUnit encInput
 private def inputSize (x : Input) : ℕ := (encInput x).length
 private def width (k : ℕ) : ℕ := max 2 k
 private def divisor (p : Context) : ℕ := BranchedSparseCNFCounter.leafSearchDivisor p.2
-private def thresholdBase (k : ℕ) (p : Context) : ℕ := BranchedSparseCNFCounter.leafThresholdBase k p.2
+private def thresholdBase (k : ℕ) (p : Context) : ℕ :=
+  BranchedSparseCNFCounter.leafThresholdBase k p.2
 private def depthCoeff (k : ℕ) (p : Context) : ℕ := countingDepthCoeff (width k) (thresholdBase k p)
 private def prepare (x : Input) : FullInput := ((), x)
 
@@ -142,7 +143,8 @@ private theorem computableInPolyTime_prepare :
   unfold prepare
   fun_prop
 
-private theorem length_prepare (x : Input) : (encFullInput (prepare x)).length = inputSize x + 1 := by
+private theorem length_prepare (x : Input) :
+    (encFullInput (prepare x)).length = inputSize x + 1 := by
   simp [encFullInput, prepare, inputSize, encUnit_apply]
 
 private theorem length_leaf_input (N : ℕ) (ψ : CNF ℕ) :
@@ -499,7 +501,8 @@ private theorem selected_time_envelope (k d c e Cₜ dₜ Aₜ : ℕ) :
   have hP : PolyBounded inputSize P :=
     (((((PolyBounded.self.add (.const 1)).pow d).add
       (hW.comp computableInPolyTime_prepare.polyBounded_length)).add
-      (hU.comp computableInPolyTime_prepare.polyBounded_length)).add (.const 1)).add PolyBounded.self
+      (hU.comp computableInPolyTime_prepare.polyBounded_length)).add (.const 1)).add
+        PolyBounded.self
   obtain ⟨Cₚ, E, hP⟩ := hP.exists_le
   obtain ⟨Cq, _, hq⟩ := exists_clamped_rounds_le_interpolationScale
   refine ⟨(Cq + 1) * Cₚ, E, fun x => ?_⟩
