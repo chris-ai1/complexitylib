@@ -48,6 +48,8 @@ interpretation.
   `openai/math@7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a`.
 * [R. Impagliazzo and R. Paturi, *On the complexity of k-SAT*][ImpagliazzoPaturi2001]: the
   exponential-time hypotheses and the infimum exponent.
+* [M. R. Garey and D. S. Johnson, *Computers and Intractability*][GareyJohnson1979]: reasonable
+  encodings.
 
 The native port is the joint work recorded in #1226, including Samuel Schlesinger,
 Anton Kovsharov, Erik Demaine and the contributing Codex, Claude and Jetski workers. The native
@@ -117,14 +119,6 @@ literals within clauses and the clauses within the formula. This is the native `
 def encCNF : Formula ↪ List Bool :=
   encList (encList (encPair encNat encBool))
 
-/-- **The encoding is concise.** Its length is exactly one bit per clause, plus `10 + 8 · b` bits
-for each literal occurrence, where `b = Nat.size v` is the number of binary digits of its variable
-`v`. Thus the input length is linear in the number of literals and logarithmic in the variable
-labels, as for a reasonable encoding in the sense of Garey and Johnson. -/
-theorem length_encCNF (φ : Formula) :
-    (encCNF φ).length = φ.length + (φ.flatten.map fun l => 10 + 8 * Nat.size l.var).sum :=
-  SubexponentialSATBridge.length_encCNF φ
-
 /-! ## Deterministic machine and resource conventions
 
 The upstream model is a deterministic binary multi-tape Turing machine with finitely many
@@ -180,6 +174,21 @@ def ETH : Prop :=
 /-- SETH asserts that every improvement below rate one fails for some fixed clause width. -/
 def SETH : Prop :=
   ∀ ε : ℝ, 0 < ε → ∃ k : ℕ, ¬DecidableInExpTime (KSAT k) encCNF numVars (1 - ε)
+
+/-! ## Input size
+
+The polynomial factors below are polynomials in the length of `encCNF φ`, which is exactly
+determined by the formula.
+-/
+
+/-- **The encoding is concise.** Its length is exactly one bit per clause, plus `10 + 8 · b` bits
+for each literal occurrence, where `b = Nat.size v` is the number of binary digits of its variable
+`v`. Thus the input length is linear in the number of literals and logarithmic in the variable
+labels, as for a reasonable encoding in the sense of
+[Garey and Johnson][GareyJohnson1979]. -/
+theorem length_encCNF (φ : Formula) :
+    (encCNF φ).length = φ.length + (φ.flatten.map fun l => 10 + 8 * Nat.size l.var).sum :=
+  SubexponentialSATBridge.length_encCNF φ
 
 /-! ## Exact counting and the exponential time hypotheses
 
