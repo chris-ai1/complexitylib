@@ -19,8 +19,8 @@ class of languages accepted by polynomial-time nondeterministic threshold machin
 computation paths of possibly different lengths, whose fraction of accepting paths is bounded away
 from one half. We fix the ratio gap at three quarters; by their error reduction any fixed gap
 gives the same class, which is not proved here. We state it through its path counts: there
-are #P functions `acc` and `rej` counting the accepting and rejecting paths, with at least one path on every input, such that `acc ≥ 3 rej` on
-members and `rej ≥ 3 acc` on nonmembers. As for `SBP` (`Cslib.Complexity.SBP`), these are
+are #P functions `acc` and `rej` counting the accepting and rejecting paths, with at least one
+path on every input, such that `acc ≥ 3 rej` on members and `rej ≥ 3 acc` on nonmembers. As for `SBP` (`Cslib.Complexity.SBP`), these are
 verifier counts; the equivalence with the machine definition is not proved here.
 
 SBP lies between BPP and BPPpath [Böhler, Glaßer and Meister][BoehlerGlasserMeister2006]: an SBP
