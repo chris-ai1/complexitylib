@@ -87,17 +87,17 @@ def eval (φ : Formula) (σ : ℕ → Bool) : Bool :=
 /-- A formula is satisfiable when some total Boolean assignment makes it true. -/
 def Satisfiable (φ : Formula) : Prop := ∃ σ : ℕ → Bool, eval φ σ = true
 
-/-- Variables in occurrence order, retaining repetitions. -/
-def vars (φ : Formula) : List ℕ := φ.flatten.map Literal.var
+/-- The variables occurring in `φ`. -/
+def vars (φ : Formula) : Finset ℕ := (φ.flatten.map Literal.var).toFinset
 
-/-- The number of distinct occurring variables, independent of their numeric labels. -/
-def numVars (φ : Formula) : ℕ := (vars φ).toFinset.card
+/-- The number of variables occurring in `φ`, independent of their numeric labels. -/
+def numVars (φ : Formula) : ℕ := (vars φ).card
 
-/-- The number of satisfying assignments of `φ`: assignments of its distinct variables, each
-variable counted once, that make `φ` true. -/
+/-- The number of satisfying assignments of `φ`: assignments `vars φ → Bool` that make `φ` true
+when every other variable is set to `false`. -/
 def modelCount (φ : Formula) : ℕ :=
-  (Finset.univ.filter fun σ : (vars φ).toFinset → Bool =>
-    eval φ (fun v => if h : v ∈ (vars φ).toFinset then σ ⟨v, h⟩ else false) = true).card
+  (Finset.univ.filter fun σ : vars φ → Bool =>
+    eval φ (fun v => if h : v ∈ vars φ then σ ⟨v, h⟩ else false) = true).card
 
 /-- Every clause of `φ` has at most `k` literals. -/
 def HasWidth (k : ℕ) (φ : Formula) : Prop := ∀ clause ∈ φ, clause.length ≤ k
