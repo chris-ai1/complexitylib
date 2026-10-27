@@ -14,12 +14,10 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Data.Fintype.Pi
 
-/-! # Draft: OpenAI: the Exponential Time Hypothesis is false
+/-! # OpenAI: the Exponential Time Hypothesis is false
 
-**Integration draft; catalogue publication pending.** The four theorems below are proved through
-`SubexponentialSATBridge` from the unconditional native counting endpoint. This branch prepares
-the formal abstract requested in #1226; dependency integration and outside review remain
-publication prerequisites, and this draft is not selected in the public catalogue.
+The four theorems below are proved through `SubexponentialSATBridge` from the unconditional
+native counting endpoint.
 
 The primary result is one deterministic machine for each fixed clause width, counting
 exactly over the declared variables. Its running time is exponential in a constant times
@@ -51,8 +49,8 @@ of the definitions and theorem statements, not their English interpretation.
 
 The native port is the joint work recorded in #1226, including Samuel Schlesinger,
 Anton Kovsharov, Erik Demaine and the contributing Codex, Claude and Jetski workers. The native
-machine and encoding foundations include Christian Reitwiessner's contributions. This draft
-does not claim authorship of those implementations. Construction provenance is recorded in
+machine and encoding foundations include Christian Reitwiessner's contributions.
+Construction provenance is recorded in
 `SubexponentialSATBridge`.
 -/
 
