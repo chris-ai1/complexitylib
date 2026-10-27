@@ -20,8 +20,6 @@ namespace ComplexityTests.Abstracts.SubexponentialSATTests
 
 open ComplexityAbstracts.SubexponentialSATAbstract
 
-example (l : Literal) : l = (l.var, l.positive) := rfl
-
 example (φ : Formula) (σ : ℕ → Bool) : eval φ σ = Cslib.Logic.PL.CNF.eval σ φ := rfl
 
 example (φ : Formula) : Satisfiable φ ↔ Cslib.Logic.PL.CNF.Satisfiable φ := Iff.rfl
