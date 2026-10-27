@@ -9,7 +9,7 @@ Authors: OpenAI, Samuel Schlesinger, Anton Kovsharov
 import ComplexityAbstracts.Check
 import ComplexityAbstracts.Encoding
 import ComplexityAbstracts.SubexponentialSATBridge
-import Complexity.Computability.Machines.Turing.MultiTape.ResourceBounds
+import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Data.Fintype.Pi
@@ -34,12 +34,12 @@ agreement with the canonical definitions. Machinery is existential. The bridge i
 public unconditional endpoint, whose native counter and consequences prove the displayed
 statements without any branch-certificate or exactness hypothesis.
 
-**What a reader inspects.** Read the definitions below, the displayed `Encoding` foundation,
-and the one additional allowed module, `MultiTape.ResourceBounds`. The latter contributes only
-the plain native `ComputableInO` resource convention, explained below, over upstream deterministic
-machines. No CNF implementation, complexity-class definition or counting construction is
-allowlisted. Lean checks the bridge proofs; `#check_abstract` audits the dependency boundary
-of the definitions and theorem statements, not their English interpretation.
+**What a reader inspects.** Read the definitions below and the displayed `Encoding` foundation.
+The machine model is upstream cslib's deterministic multi-tape Turing machine; no library
+module beyond `Encoding` is allowlisted, so no CNF implementation, complexity-class definition or
+counting construction enters the statements. Lean checks the bridge proofs; `#check_abstract`
+audits the dependency boundary of the definitions and theorem statements, not their English
+interpretation.
 
 ## References and credit
 
@@ -133,16 +133,20 @@ and symbol operations. The input tape is read-only, and output is write-only. Ti
 transitions until halting; work space counts visited work-tape cells over every run prefix.
 No condition is imposed on bitstrings outside the chosen encoding's image.
 
-The native predicate `Turing.MultiTapeTM.ComputableInO f encIn encOut T S` means that there
-exists a constant `C` and one such machine computing `f` on every encoded input `x` within
-`C * (T x + 1)` steps and `C * (S x + 1)` work cells, with the additional bound
-`(encOut (f x)).length ≤ C * (S x + 1)`. Thus output is charged even though its tape is not a
-work tape. Time and space are independent budgets; a time bound does not supply polynomial
-space. This is the library's existing resource predicate, not a unit-cost arithmetic machine.
-
-For decision problems below, `DecidableInTimeAndSpace` computes the exact Boolean membership
-bit and halts on every encoded instance. Its finite machine and all bounds precede the inputs.
+Upstream `ComputableInTimeAndSpace f encIn encOut t s` asserts one such machine that, on every
+input `x`, halts with `encOut (f x)` within `t x` steps and `s x` work cells.
+`DecidableInTimeAndSpace` is the case of the exact Boolean membership bit. The finite machine and
+all bounds precede the inputs. Time and space are independent budgets; a time bound does not
+supply polynomial space.
 -/
+
+/-- `f` is computable within time `O(T x)` and space `O(S x)`, with the encoded output also of
+length `O(S x)`: output is charged even though its tape is not a work tape. -/
+def ComputableInO {α β : Type} (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (T S : α → ℕ) : Prop :=
+  ∃ c, Turing.MultiTapeTM.ComputableInTimeAndSpace f encIn encOut
+      (fun x => c * (T x + 1)) (fun x => c * (S x + 1)) ∧
+    ∀ x, (encOut (f x)).length ≤ c * (S x + 1)
 
 /-- A decision problem is decidable in time `O(T x)`, with some independent space bound. -/
 def DecidableInTimeO {α : Type} (A : Set α) (enc : α ↪ List Bool) (T : α → ℝ) : Prop :=
@@ -199,7 +203,7 @@ is the number of variables and `L` the encoding length. -/
 theorem exact_count (k : ℕ) :
     ∃ (count : Formula → ℕ) (A e b : ℕ),
       (∀ φ, HasWidth k φ → count φ = modelCount φ) ∧
-      Turing.MultiTapeTM.ComputableInO count encCNF encNat
+      ComputableInO count encCNF encNat
         (fun φ => ⌈(2 : ℝ) ^ (A * interpolationScale (numVars φ))⌉₊ * ((encCNF φ).length + 1) ^ e)
         (fun φ => ((encCNF φ).length + 1) ^ b) :=
   SubexponentialSATBridge.exact_count k
@@ -218,10 +222,9 @@ end ComplexityAbstracts.SubexponentialSATAbstract
 
 /--
 info: abstract audit passed for `ComplexityAbstracts.SubexponentialSATAbstract`:
-26 root declarations, 143 dependencies checked
+27 root declarations, 143 dependencies checked
 -/
 #guard_msgs (whitespace := lax) in
 #check_abstract ComplexityAbstracts.SubexponentialSATAbstract allowing [
-  ComplexityAbstracts.Encoding,
-  Complexity.Computability.Machines.Turing.MultiTape.ResourceBounds
+  ComplexityAbstracts.Encoding
 ]
