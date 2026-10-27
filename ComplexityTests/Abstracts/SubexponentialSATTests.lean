@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 
 import ComplexityAbstracts.SubexponentialSATAbstract
 import Complexity.Computability.Complexity.FineGrained
+import Complexity.Computability.Machines.Turing.MultiTape.ResourceBounds
 import Complexity.Computability.Complexity.FineGrained.CountingScale
 import Complexity.Logics.Propositional.CNF.ModelCount
 
@@ -33,6 +34,11 @@ example (φ : Formula) : modelCount φ = Cslib.Logic.PL.CNF.modelCount φ := rfl
 example (k : ℕ) (φ : Formula) : HasWidth k φ ↔ ∀ c ∈ φ, c.length ≤ k := Iff.rfl
 
 example : encCNF = Cslib.Complexity.encCNF := rfl
+
+example {α β : Type} (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (T S : α → ℕ) :
+    ComputableInO f encIn encOut T S ↔ Turing.MultiTapeTM.ComputableInO f encIn encOut T S :=
+  Iff.rfl
 
 example {α : Type} (A : Set α) (enc : α ↪ List Bool) (T : α → ℝ) :
     DecidableInTimeO A enc T ↔ Cslib.Complexity.DecidableInTimeO A enc T := Iff.rfl
