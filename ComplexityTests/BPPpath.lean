@@ -10,7 +10,7 @@ module
 public import Complexity.Computability.Complexity.Classes.BPPpath
 import Complexity.Computability.Complexity.Classes.SharpP.PolyTime
 
-/-! # BPPpath: the inclusion chain and a constant-count example -/
+/-! # BPPpath: explicit path counts for concrete languages -/
 
 @[expose] public section
 
@@ -20,12 +20,17 @@ open Turing.MultiTapeTM
 
 variable {α : Type} {enc : α ↪ List Bool}
 
-/-- The chain `BPP ⊆ SBP ⊆ BPPpath ⊆ PP`. -/
-example : BPP enc ⊆ SBP enc ∧ SBP enc ⊆ BPPpath enc ∧ BPPpath enc ⊆ PP enc :=
-  ⟨BPP_subset_SBP, SBP_subset_BPPpath, BPPpath_subset_PP⟩
-
 /-- The empty language: one rejecting path and no accepting path on every input. -/
 example : (∅ : Set α) ∈ BPPpath enc :=
   ⟨0, SharpP.zero_mem, 1, SharpP.one_mem, fun _ => by simp⟩
+
+/-- A language decided by a polynomial-time predicate `p`: a single path, accepting exactly when
+`p` holds. The ratio conditions hold with one path against none. -/
+example (p : α → Bool) (hp : ComputableInPolyTime p enc encBool) :
+    {a | p a = true} ∈ BPPpath enc := by
+  refine ⟨fun a => if p a then 1 else 0, SharpP.ite_mem hp SharpP.one_mem SharpP.zero_mem,
+    fun a => if p a then 0 else 1, SharpP.ite_mem hp SharpP.zero_mem SharpP.one_mem,
+    fun a => ?_⟩
+  cases h : p a <;> simp [h]
 
 end Cslib.Complexity.Tests.BPPpath
