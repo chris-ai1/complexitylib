@@ -188,14 +188,29 @@ index links to canonical definitions rather than keeping a second set.
 - **Reducibilities** ([#1351]): one-one, many-one, bounded and general truth-table (`k`-tt,
   disjunctive, conjunctive, positive) and Turing reductions, each in polynomial time and in
   logarithmic space, with the inclusion hierarchy of Ladner, Lynch and Selman. Logspace Turing
-  reductions need an oracle model with a query tape that is not charged to the space bound.
+  reductions use an oracle model with a query tape that is not charged to the space bound.
+- **Sparse and tally sets:** SPARSE and TALLY; `P/poly = P^SPARSE` (Meyer); a sparse set that is
+  NP-hard under many-one reductions gives `P = NP` (Mahaney), as does a sparse coNP-hard set
+  (Fortune) and a sparse NP-hard set under bounded truth-table reductions (Ogihara and Watanabe).
+- **Berman–Hartmanis:** p-isomorphism and paddability; paddable NP-complete sets are
+  p-isomorphic, so the standard NP-complete problems are all p-isomorphic to SAT; the isomorphism
+  conjecture as a hypothesis; every many-one complete set for EXP is complete under one-one,
+  length-increasing reductions (Berman); and the isomorphism theorem for sets complete under AC⁰
+  reductions (Agrawal, Allender and Rudich).
 - **Autoreducibility and mitoticity:** `m`-autoreducible equals `m`-mitotic, so every NP-complete
   set splits into two NP-complete sets (Glaßer, Pavan, Selman and Zhang); separations of complexity
   classes by autoreducibility (Buhrman, Fortnow, van Melkebeek and Torenvliet).
-- **Berman–Hartmanis:** p-isomorphism and paddability; paddable NP-complete sets are p-isomorphic,
-  so the standard NP-complete problems are all p-isomorphic to SAT; the isomorphism conjecture as
-  a hypothesis; Mahaney's theorem that a sparse NP-complete set implies `P = NP`; and the
-  isomorphism theorem for sets complete under AC⁰ reductions (Agrawal, Allender and Rudich).
+- **Ladner's theorem:** if `P ≠ NP` there are NP-intermediate sets, by delayed diagonalization
+  over an effective enumeration of clocked polynomial-time machines, and Schöning's uniform
+  diagonalization.
+- **Self-reducibility and selectivity:** downward self-reducible sets lie in PSPACE; search
+  reduces to decision for self-reducible NP problems such as SAT. P-selective sets (Selman): a
+  P-selective NP-complete set gives `P = NP`, P-selective sets lie in `P/poly` (Ko), and
+  self-reducible P-selective sets lie in P.
+- **Low and high hierarchies in NP** (Schöning): sparse NP sets lie in `Low₂` (Ko and Schöning),
+  and so does graph isomorphism, via graph non-isomorphism in AM.
+- **Immunity:** immune and bi-immune sets, P-bi-immune sets in EXP (Balcázar and Schöning), and
+  almost-everywhere hardness.
 
 ### Counting and modular classes
 
