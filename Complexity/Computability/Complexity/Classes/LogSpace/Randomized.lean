@@ -8,6 +8,7 @@ module
 -- upstream: candidate
 
 public import Complexity.Computability.Complexity.Classes.LogSpace
+public import Complexity.Computability.Machines.Turing.MultiTape.Complexity.LogSpace.HaltingTime
 public import Complexity.Computability.Machines.Turing.MultiTape.Machine.Nondeterministic
 public import Complexity.Computability.Machines.Turing.MultiTape.Probabilistic.Deterministic
 
@@ -42,11 +43,15 @@ the polynomial clock a derived lemma, acceptance by counting coin strings, and s
 ## Main results
 
 * `Turing.MultiTapePTM.acceptCoins_succ`: once every branch halts, one more coin doubles the count.
+* `Turing.MultiTapePTM.acceptCoins_mul_two_pow`: the acceptance probability does not depend on
+  the halting time it is measured at.
 * `Turing.MultiTapePTM.accepts_toNTM_iff`: the nondeterministic view accepts exactly when some
   coin string of a halting length is accepted.
 * `Cslib.Complexity.L_subset_RL`, `Cslib.Complexity.L_subset_BPL`: deterministic logarithmic space
   is within both.
 * `Cslib.Complexity.RL_subset_NL`: randomized logspace with one-sided error is within `NL`.
+* `Cslib.Complexity.exists_polyClock_of_mem_RL`, `Cslib.Complexity.exists_polyClock_of_mem_BPL`:
+  the derived polynomial clock; every branch halts within polynomially many steps.
 
 ## References
 
@@ -131,6 +136,17 @@ theorem acceptCoins_add {input : List Bool} {t : ℕ} (ht : machine.toNTM.RunsIn
   | succ m ih =>
     rw [← Nat.add_assoc, acceptCoins_succ machine (ht.mono (Nat.le_add_right t m)), ih, pow_succ]
     ring
+
+/-- **The acceptance probability does not depend on the clock**: for two halting times `t` and
+`t'`, `acceptCoins input t / 2 ^ t = acceptCoins input t' / 2 ^ t'`. -/
+theorem acceptCoins_mul_two_pow {input : List Bool} {t t' : ℕ}
+    (ht : machine.toNTM.RunsInTime input t) (ht' : machine.toNTM.RunsInTime input t') :
+    machine.acceptCoins input t' * 2 ^ t = machine.acceptCoins input t * 2 ^ t' := by
+  wlog h : t ≤ t' generalizing t t'
+  · exact (this ht' ht (le_of_not_ge h)).symm
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le h
+  rw [acceptCoins_add machine ht m, pow_add]
+  ring
 
 /-- **Acceptance of the nondeterministic view** is acceptance by some coin string of a halting
 length. -/
@@ -264,6 +280,57 @@ theorem RL_subset_NL : RL enc ⊆ NL enc := by
       exact Nat.lt_irrefl 0 hpos
   · obtain ⟨t, ht, -⟩ := (h a).2
     exact ⟨t, ht⟩
+
+/-- **`RL` has a polynomial clock**: an `RL` machine, which only promises to halt on every branch,
+halts within a polynomial number of steps `2 * (2 * (n + 1)) ^ d`, and the acceptance bounds hold
+at that clock. -/
+theorem exists_polyClock_of_mem_RL (h : A ∈ RL enc) :
+    ∃ (k : ℕ) (State : Type) (_ : Finite State) (M : MultiTapePTM k Bool State) (c d : ℕ),
+      ∀ a, M.toNTM.RunsInSpace (enc a) (c * (Nat.log2 (enc a).length + 1)) ∧
+        M.toNTM.RunsInTime (enc a) (2 * (2 * ((enc a).length + 1)) ^ d) ∧
+        (a ∈ A → 2 ^ (2 * (2 * ((enc a).length + 1)) ^ d) ≤
+          2 * M.acceptCoins (enc a) (2 * (2 * ((enc a).length + 1)) ^ d)) ∧
+        (a ∉ A → M.acceptCoins (enc a) (2 * (2 * ((enc a).length + 1)) ^ d) = 0) := by
+  obtain ⟨k, State, hfin, M, c, hM⟩ := h
+  refine ⟨k, State, hfin, M, c, 2 * (8 + 2 * Nat.card (Option State) + 200 * k) * (c + 1),
+    fun a => ?_⟩
+  obtain ⟨hs, t, ht, hmem, hnot⟩ := hM a
+  have hT := MultiTapeNTM.runsInTime_polynomial_of_runsInSpace_log hs ht
+  have e := M.acceptCoins_mul_two_pow ht hT
+  refine ⟨hs, hT, fun ha => ?_, fun ha => ?_⟩
+  · have := Nat.mul_le_mul_right (2 ^ (2 * (2 * ((enc a).length + 1)) ^
+      (2 * (8 + 2 * Nat.card (Option State) + 200 * k) * (c + 1)))) (hmem ha)
+    refine Nat.le_of_mul_le_mul_right (c := 2 ^ t) ?_ (Nat.two_pow_pos t)
+    linarith [e]
+  · rw [hnot ha, zero_mul] at e
+    exact (Nat.mul_eq_zero.mp e).resolve_right (Nat.two_pow_pos t).ne'
+
+/-- **`BPL` has a polynomial clock**: a `BPL` machine, which only promises to halt on every
+branch, halts within a polynomial number of steps `2 * (2 * (n + 1)) ^ d`, and the acceptance
+bounds hold at that clock. -/
+theorem exists_polyClock_of_mem_BPL (h : A ∈ BPL enc) :
+    ∃ (k : ℕ) (State : Type) (_ : Finite State) (M : MultiTapePTM k Bool State) (c d : ℕ),
+      ∀ a, M.toNTM.RunsInSpace (enc a) (c * (Nat.log2 (enc a).length + 1)) ∧
+        M.toNTM.RunsInTime (enc a) (2 * (2 * ((enc a).length + 1)) ^ d) ∧
+        (a ∈ A → 2 * 2 ^ (2 * (2 * ((enc a).length + 1)) ^ d) ≤
+          3 * M.acceptCoins (enc a) (2 * (2 * ((enc a).length + 1)) ^ d)) ∧
+        (a ∉ A → 3 * M.acceptCoins (enc a) (2 * (2 * ((enc a).length + 1)) ^ d) ≤
+          2 ^ (2 * (2 * ((enc a).length + 1)) ^ d)) := by
+  obtain ⟨k, State, hfin, M, c, hM⟩ := h
+  refine ⟨k, State, hfin, M, c, 2 * (8 + 2 * Nat.card (Option State) + 200 * k) * (c + 1),
+    fun a => ?_⟩
+  obtain ⟨hs, t, ht, hmem, hnot⟩ := hM a
+  have hT := MultiTapeNTM.runsInTime_polynomial_of_runsInSpace_log hs ht
+  have e := M.acceptCoins_mul_two_pow ht hT
+  refine ⟨hs, hT, fun ha => ?_, fun ha => ?_⟩
+  · have := Nat.mul_le_mul_right (2 ^ (2 * (2 * ((enc a).length + 1)) ^
+      (2 * (8 + 2 * Nat.card (Option State) + 200 * k) * (c + 1)))) (hmem ha)
+    refine Nat.le_of_mul_le_mul_right (c := 2 ^ t) ?_ (Nat.two_pow_pos t)
+    linarith [e]
+  · have := Nat.mul_le_mul_right (2 ^ (2 * (2 * ((enc a).length + 1)) ^
+      (2 * (8 + 2 * Nat.card (Option State) + 200 * k) * (c + 1)))) (hnot ha)
+    refine Nat.le_of_mul_le_mul_right (c := 2 ^ t) ?_ (Nat.two_pow_pos t)
+    linarith [e]
 
 /-- A logspace decider, run as a fair-coin machine that ignores its coins, accepts members on all
 coin strings and non-members on none. -/
