@@ -237,6 +237,19 @@ private theorem computableInPolyTime_ttCompCombiner {r : α → ℕ} {q : α × 
     ComputableInPolyTime (ttCompCombiner r q d r' d' M) (encPair encA encBits) encBool := by
   unfold ttCompCombiner
   fun_prop
+
+/-- A polynomial-time block size `M` bounding the number of second-stage queries of every
+first-stage query. -/
+private theorem exists_ttComp_bound {r : α → ℕ} {q : α × ℕ → β} {r' : β → ℕ}
+    (hr : ComputableInPolyTime r encA encUnary)
+    (hq : ComputableInPolyTime q (encPair encA encUnary) encB)
+    (hr' : ComputableInPolyTime r' encB encUnary) :
+    ∃ M : α → ℕ, ComputableInPolyTime M encA encUnary ∧ ∀ a, ∀ i < r a, r' (q (a, i)) ≤ M a :=
+  ⟨fun a => ((List.range (r a)).flatMap fun i => List.range (r' (q (a, i)))).length,
+    by fun_prop, fun a i hi => by
+      simp only [List.length_flatMap, List.length_range]
+      exact List.le_sum_of_mem (List.mem_map.mpr ⟨i, List.mem_range.mpr hi, rfl⟩)⟩
+
 /-- **Truth-table reductions compose.** -/
 @[trans]
 theorem PolyTimeTruthTableReducible.trans (hLB : PolyTimeTruthTableReducible encA encB L B)
@@ -244,11 +257,7 @@ theorem PolyTimeTruthTableReducible.trans (hLB : PolyTimeTruthTableReducible enc
     PolyTimeTruthTableReducible encA encC L C := by
   obtain ⟨r, q, d, hr, hq, hd, hL⟩ := hLB
   obtain ⟨r', q', d', hr', hq', hd', hB⟩ := hBC
-  let M : α → ℕ := fun a => ((List.range (r a)).flatMap fun i => List.range (r' (q (a, i)))).length
-  have hM : ComputableInPolyTime M encA encUnary := by fun_prop
-  have hcM : ∀ a, ∀ i < r a, r' (q (a, i)) ≤ M a := fun a i hi => by
-    simp only [M, List.length_flatMap, List.length_range]
-    exact List.le_sum_of_mem (List.mem_map.mpr ⟨i, List.mem_range.mpr hi, rfl⟩)
+  obtain ⟨M, hM, hcM⟩ := exists_ttComp_bound hr hq hr'
   exact ⟨fun a => r a * M a, ttCompQuery r q q' M, ttCompCombiner r q d r' d' M, by fun_prop,
     computableInPolyTime_ttCompQuery hr hq hq' hM,
     computableInPolyTime_ttCompCombiner hr hq hd hr' hd' hM, ttComp_spec hL hB hcM⟩
@@ -267,6 +276,7 @@ theorem PolyTimeKTruthTableReducible.trans {k k' : ℕ}
     computableInPolyTime_ttCompCombiner hr hq hd hr' hd' hM,
     fun a => Nat.mul_le_mul_right k' (hrk a), ttComp_spec hL hB fun _ _ _ => hrk' _⟩
 
+/-- **Bounded truth-table reductions compose.** -/
 @[trans]
 theorem PolyTimeBTTReducible.trans (hLB : PolyTimeBTTReducible encA encB L B)
     (hBC : PolyTimeBTTReducible encB encC B C) : PolyTimeBTTReducible encA encC L C :=
@@ -387,14 +397,14 @@ theorem PolyTimePTTReducible.polyTimeTruthTableReducible (h : PolyTimePTTReducib
   ⟨r, q, d, hr, hq, hd, hL⟩
 
 /-- The disjunction of an answer word is computable in polynomial time. -/
-private theorem computableInPolyTime_any_answers :
+theorem computableInPolyTime_any_answers :
     ComputableInPolyTime (fun x : α × List Bool => x.2.any id) (encPair encA encBits) encBool :=
   .of_tidy (ComputableTidilyInPolyTime.anyWithEncoding (encA := encBool) (encL := encBits)
     (test := fun p : α × Bool => p.2) (.snd encA encBool) (.fst encA encBits)
     (.snd encA encBits))
 
 /-- The conjunction of an answer word is computable in polynomial time. -/
-private theorem computableInPolyTime_all_answers :
+theorem computableInPolyTime_all_answers :
     ComputableInPolyTime (fun x : α × List Bool => x.2.all id) (encPair encA encBits) encBool :=
   .of_tidy (ComputableTidilyInPolyTime.allWithEncoding (encA := encBool) (encL := encBits)
     (test := fun p : α × Bool => p.2) (.snd encA encBool) (.fst encA encBits)
@@ -477,11 +487,7 @@ theorem PolyTimePTTReducible.trans (hLB : PolyTimePTTReducible encA encB L B)
     (hBC : PolyTimePTTReducible encB encC B C) : PolyTimePTTReducible encA encC L C := by
   obtain ⟨r, q, d, hr, hq, hd, hdm, hL⟩ := hLB
   obtain ⟨r', q', d', hr', hq', hd', hdm', hB⟩ := hBC
-  let M : α → ℕ := fun a => ((List.range (r a)).flatMap fun i => List.range (r' (q (a, i)))).length
-  have hM : ComputableInPolyTime M encA encUnary := by fun_prop
-  have hcM : ∀ a, ∀ i < r a, r' (q (a, i)) ≤ M a := fun a i hi => by
-    simp only [M, List.length_flatMap, List.length_range]
-    exact List.le_sum_of_mem (List.mem_map.mpr ⟨i, List.mem_range.mpr hi, rfl⟩)
+  obtain ⟨M, hM, hcM⟩ := exists_ttComp_bound hr hq hr'
   exact ⟨fun a => r a * M a, ttCompQuery r q q' M, ttCompCombiner r q d r' d' M, by fun_prop,
     computableInPolyTime_ttCompQuery hr hq hq' hM,
     computableInPolyTime_ttCompCombiner hr hq hd hr' hd' hM,
