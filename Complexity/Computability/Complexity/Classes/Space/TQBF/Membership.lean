@@ -412,8 +412,6 @@ namespace Cslib.Complexity
 
 open Turing.MultiTapeTM
 
-attribute [local fun_prop] ComputableInPolySpace.tidy in
-attribute [local fun_prop] ComputableInPolyTime.tidy in
 /-- **`TQBF` is in polynomial space** [Sipser, Theorem 8.9][Sipser2013]
 [Arora and Barak, Theorem 4.13][AroraBarak09]: the explicit-stack evaluator decides it within
 space polynomial in the length of the encoded formula. -/
