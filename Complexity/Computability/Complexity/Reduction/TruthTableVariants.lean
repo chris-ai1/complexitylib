@@ -396,20 +396,6 @@ theorem PolyTimePTTReducible.polyTimeTruthTableReducible (h : PolyTimePTTReducib
   let ⟨r, q, d, hr, hq, hd, _, hL⟩ := h
   ⟨r, q, d, hr, hq, hd, hL⟩
 
-/-- The disjunction of an answer word is computable in polynomial time. -/
-theorem computableInPolyTime_any_answers :
-    ComputableInPolyTime (fun x : α × List Bool => x.2.any id) (encPair encA encBits) encBool :=
-  .of_tidy (ComputableTidilyInPolyTime.anyWithEncoding (encA := encBool) (encL := encBits)
-    (test := fun p : α × Bool => p.2) (.snd encA encBool) (.fst encA encBits)
-    (.snd encA encBits))
-
-/-- The conjunction of an answer word is computable in polynomial time. -/
-theorem computableInPolyTime_all_answers :
-    ComputableInPolyTime (fun x : α × List Bool => x.2.all id) (encPair encA encBits) encBool :=
-  .of_tidy (ComputableTidilyInPolyTime.allWithEncoding (encA := encBool) (encL := encBits)
-    (test := fun p : α × Bool => p.2) (.snd encA encBool) (.fst encA encBits)
-    (.snd encA encBits))
-
 private theorem any_id_le_of_forall₂ {u v : List Bool} (h : List.Forall₂ (· ≤ ·) u v) :
     u.any id ≤ v.any id := by
   induction h with
@@ -430,7 +416,7 @@ private theorem all_id_le_of_forall₂ {u v : List Bool} (h : List.Forall₂ (·
 theorem PolyTimeDTTReducible.polyTimePTTReducible (h : PolyTimeDTTReducible encA encB L B) :
     PolyTimePTTReducible encA encB L B := by
   obtain ⟨r, q, hr, hq, hL⟩ := h
-  refine ⟨r, q, fun x => x.2.any id, hr, hq, computableInPolyTime_any_answers,
+  refine ⟨r, q, fun x => x.2.any id, hr, hq, by fun_prop,
     fun _ _ _ huv => any_id_le_of_forall₂ huv, fun a => ?_⟩
   rw [hL a]
   simp [truthTableAnswers, List.any_eq_true, List.mem_ofFn, Fin.exists_iff]
@@ -439,7 +425,7 @@ theorem PolyTimeDTTReducible.polyTimePTTReducible (h : PolyTimeDTTReducible encA
 theorem PolyTimeCTTReducible.polyTimePTTReducible (h : PolyTimeCTTReducible encA encB L B) :
     PolyTimePTTReducible encA encB L B := by
   obtain ⟨r, q, hr, hq, hL⟩ := h
-  refine ⟨r, q, fun x => x.2.all id, hr, hq, computableInPolyTime_all_answers,
+  refine ⟨r, q, fun x => x.2.all id, hr, hq, by fun_prop,
     fun _ _ _ huv => all_id_le_of_forall₂ huv, fun a => ?_⟩
   rw [hL a]
   simp [truthTableAnswers, List.all_eq_true, List.mem_ofFn, Fin.forall_iff]
