@@ -267,7 +267,8 @@ theorem unary_two_pow : ComputableTidilyInO (fun n : ℕ => 2 ^ n) encUnary encU
 
 /-- `Turing.MultiTapeTM.ComputableTidilyInO.unary_two_pow` for plain certificates. -/
 theorem _root_.Turing.MultiTapeTM.ComputableInO.unary_two_pow :
-    ComputableInO (fun n : ℕ => 2 ^ n) encUnary encUnary (fun n => (n + 1) * 2 ^ n) fun n => 2 ^ n :=
+    ComputableInO (fun n : ℕ => 2 ^ n) encUnary encUnary (fun n => (n + 1) * 2 ^ n)
+      fun n => 2 ^ n :=
   ComputableInO.of_tidy ComputableTidilyInO.unary_two_pow
 
 end ComputableTidilyInO
