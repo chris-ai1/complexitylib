@@ -46,8 +46,8 @@ capabilities.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.of_enc_eq`: reuse identical encoded outputs
   with the same machine and exact time and space bounds.
 
-* `Turing.MultiTapeTM.ComputableTidilyInLinearTimeAndSpace.comp`, `.ite`, `.append`, `.pair`:
-  closure properties of linear time and space.
+* `Turing.MultiTapeTM.ComputableTidilyInLinearTimeAndSpace.ite`, `.append`: closure properties of
+  linear time and space.
 * `Turing.MultiTapeTM.ComputableTidilyInLinearTimeAndSpace.const`: constant functions.
 * `Turing.MultiTapeTM.Transducer.computableTidilyInLinearTimeAndSpace`: functions computed by
   finite-state transducers.

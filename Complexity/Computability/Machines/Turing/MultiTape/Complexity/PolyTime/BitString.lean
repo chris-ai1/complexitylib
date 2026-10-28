@@ -42,14 +42,15 @@ polynomial bound on the complete encoded output. The operations are total on emp
   framing and bounded padding, including arbitrary encoded inputs and overlong words.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsGetElem?`: optional lookup in raw bits.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.mapToBitsWithInput`, `.bitsFilterWithInput`,
-  `.bitsAnyWithInput`, `.bitsAllWithInput`, `.bitsFoldlWithInput`, `.bitsZipWithInput`:
-  compositional bit operations.
+  `.bitsAnyWithInput`, `.bitsFoldlWithInput`, `.bitsZipWithInput`, and
+  `Turing.MultiTapeTM.ComputableInPolyTime.bitsAllWithInput`: compositional bit operations.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsStrictMajority`, `.bitsSingle`, `.bitsSingles`,
   `.bitsXorSelected`, `.bitsXorWithInput`: finite-mask algorithms.
-* `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsCountPWithInput`, `.bitsCountWithInput`:
-  unary counts under captured predicates or computed labels.
-* `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsNonpositiveMarginWithInput`:
-  compare the correct-vote count with the word length.
+* `Turing.MultiTapeTM.ComputableInPolyTime.bitsCountPWithInput`,
+  `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsCountWithInput`: unary counts under captured
+  predicates or computed labels.
+* `Turing.MultiTapeTM.ComputableInPolyTime.bitsNonpositiveMarginWithInput`: compare the
+  correct-vote count with the word length.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsEnumList`: output-bounded enumeration.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.bitsBoundedBinaryValue`: capped binary decoding
   to unary, with every intermediate accumulator bounded by the supplied cap.

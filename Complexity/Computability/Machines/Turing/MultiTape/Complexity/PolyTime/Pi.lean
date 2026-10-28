@@ -24,7 +24,7 @@ The index type is fixed independently of the input; values need not be finite or
 
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.ofFn`, `.pi`: construct fixed finite families.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.pi_apply`, `.pi_update`: fixed-index access.
-* `Turing.MultiTapeTM.ComputableTidilyInPolyTime.pi_apply'`, `.pi_update'`: computed-index access.
+* `Turing.MultiTapeTM.ComputableTidilyInPolyTime.pi_apply'`: computed-index access.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.pi_eval`: lookup from an encoded table/index pair.
 
 ## References
