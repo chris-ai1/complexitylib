@@ -532,6 +532,14 @@ theorem binary_shiftRight' {α : Type} {input : α ↪ List Bool} {left right : 
     ComputableInPolyTime (fun a => left a >>> right a) input encNat :=
   binary_shiftRight.comp (hleft.prod hright)
 
+/-- The strict order of two computed numbers in binary. -/
+@[fun_prop]
+theorem binary_lt' {α : Type} {input : α ↪ List Bool} {left right : α → ℕ}
+    (hleft : ComputableInPolyTime left input encNat)
+    (hright : ComputableInPolyTime right input encNat) :
+    ComputableInPolyTime (fun a => decide (left a < right a)) input encBool :=
+  binary_lt.comp (hleft.prod hright)
+
 end Turing.MultiTapeTM.ComputableInPolyTime
 
 /-! ### Plain polynomial-time automation -/

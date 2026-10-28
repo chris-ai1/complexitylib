@@ -389,4 +389,8 @@ theorem intBin_mul' {α : Type} {input : α ↪ List Bool} {left right : α → 
     ComputableInPolyTime (fun a => left a * right a) input encIntBin :=
   .of_tidy (ComputableTidilyInPolyTime.intBin_mul' hleft.tidy hright.tidy)
 
+/-- The cast of a binary natural number to a binary integer. -/
+theorem intBin_natCast : ComputableInPolyTime (fun n : ℕ => (n : ℤ)) encNat encIntBin :=
+  .of_tidy ComputableTidilyInPolyTime.intBin_natCast
+
 end Turing.MultiTapeTM.ComputableInPolyTime
