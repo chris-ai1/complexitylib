@@ -245,3 +245,23 @@ theorem decide_ne [DecidableEq β] {left right : α → β}
 end Turing.MultiTapeTM.ComputableTidilyInPolyTime
 
 /-! ### Plain polynomial-time automation -/
+
+namespace Turing.MultiTapeTM.ComputableInPolyTime
+
+variable {α β : Type} {encA : α ↪ List Bool} {encB : β ↪ List Bool}
+
+/-- `Turing.MultiTapeTM.ComputableTidilyInPolyTime.encoded` for plain certificates. -/
+theorem encoded {f : α → β} (hf : ComputableInPolyTime f encA encB) :
+    ComputableInPolyTime (fun a => encB (f a)) encA encBits :=
+  .of_tidy (ComputableTidilyInPolyTime.encoded (hf := hf.tidy))
+
+/-- `Turing.MultiTapeTM.ComputableTidilyInPolyTime.cond` for plain certificates. -/
+theorem cond {condition : α → Bool} {yes no : α → β}
+    (hcondition : ComputableInPolyTime condition encA encBool)
+    (hyes : ComputableInPolyTime yes encA encB)
+    (hno : ComputableInPolyTime no encA encB) :
+    ComputableInPolyTime (fun a => if condition a then yes a else no a) encA encB :=
+  .of_tidy (ComputableTidilyInPolyTime.cond (hcondition := hcondition.tidy) (hyes := hyes.tidy)
+    (hno := hno.tidy))
+
+end Turing.MultiTapeTM.ComputableInPolyTime

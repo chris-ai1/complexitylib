@@ -394,3 +394,16 @@ theorem intBin_natCast : ComputableInPolyTime (fun n : ℕ => (n : ℤ)) encNat 
   .of_tidy ComputableTidilyInPolyTime.intBin_natCast
 
 end Turing.MultiTapeTM.ComputableInPolyTime
+
+namespace Turing.MultiTapeTM.ComputableInPolyTime
+
+/-- `Turing.MultiTapeTM.ComputableTidilyInPolyTime.intBin_toNat` for plain certificates. -/
+theorem intBin_toNat : ComputableInPolyTime Int.toNat encIntBin encNat :=
+  .of_tidy ComputableTidilyInPolyTime.intBin_toNat
+
+/-- `Turing.MultiTapeTM.ComputableTidilyInPolyTime.intBin_sub` for plain certificates. -/
+theorem intBin_sub : ComputableInPolyTime (fun p : ℤ × ℤ => p.1 - p.2)
+    (encPair encIntBin encIntBin) encIntBin :=
+  .of_tidy ComputableTidilyInPolyTime.intBin_sub
+
+end Turing.MultiTapeTM.ComputableInPolyTime
