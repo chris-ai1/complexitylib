@@ -52,8 +52,7 @@ Finally, for any system of equations with variable scopes `scope : κ → Finset
 candidate variable set `V` (`∀ i ∈ F, scope i ⊆ V`) and positive incidence threshold `1 ≤ b₀`,
 the set `Cslib.BitString.heavyVars V F scope b₀` of variables in `V` appearing in more than `b₀`
 scopes has cardinality at most `totalIncidence F scope / b₀`
-(`Cslib.BitString.card_heavyVars_le_div`; and at most `(k_scope * #F) / b₀` when every scope has
-cardinality at most `k_scope`, `Cslib.BitString.card_heavyVars_le_mul_card_div`), while every
+(`Cslib.BitString.card_heavyVars_le_div`), while every
 remaining variable in `V \ heavyVars V F scope b₀` (and in any post-branching restricted equation
 scope when `∀ i ∈ I, equationScope (P i) ⊆ V`) has incidence at most `b₀`. Branching on all
 `2 ^ #S` assignments to a variable subset `S` and simplifying each equation via
@@ -118,6 +117,12 @@ variable {ι κ σ R : Type*}
 /-- The sum of the monomials in `𝓜 : Finset (Finset ι)` evaluated at `x : ι → Bool` in `R`. -/
 def monomialSum (R : Type*) [CommRing R] (𝓜 : Finset (Finset ι)) (x : ι → Bool) : R :=
   ∑ M ∈ 𝓜, monomial R M x
+
+/-- The empty family of monomials evaluates to `0`. -/
+@[simp]
+theorem monomialSum_empty (R : Type*) [CommRing R] (x : ι → Bool) :
+    monomialSum R (∅ : Finset (Finset ι)) x = 0 := by
+  simp only [monomialSum, sum_empty]
 
 /-- A singleton family `{M}` evaluates to `monomial R M x`. -/
 @[simp]
@@ -222,6 +227,19 @@ def monomialPoly (R : Type*) [CommSemiring R] (M : Finset ι) : MvPolynomial ι 
 def monomialSumPoly (R : Type*) [CommSemiring R] (𝓜 : Finset (Finset ι)) : MvPolynomial ι R :=
   ∑ M ∈ 𝓜, monomialPoly R M
 
+/-- Evaluating `monomialPoly R M` at `v ↦ bitVal R (x v)` gives `monomial R M x`. -/
+@[simp]
+theorem aeval_bitVal_monomialPoly (R : Type*) [CommRing R] (M : Finset ι) (x : ι → Bool) :
+    aeval (fun v => bitVal R (x v)) (monomialPoly R M) = monomial R M x := by
+  simp only [monomialPoly, monomial, map_prod, aeval_X]
+
+/-- Evaluating `monomialSumPoly R 𝓜` at `v ↦ bitVal R (x v)` gives `monomialSum R 𝓜 x`. -/
+@[simp]
+theorem aeval_bitVal_monomialSumPoly (R : Type*) [CommRing R] (𝓜 : Finset (Finset ι))
+    (x : ι → Bool) :
+    aeval (fun v => bitVal R (x v)) (monomialSumPoly R 𝓜) = monomialSum R 𝓜 x := by
+  simp only [monomialSumPoly, monomialSum, map_sum, aeval_bitVal_monomialPoly]
+
 /-- Evaluating `monomialPoly R M` via `eval₂ f q` gives `∏ v ∈ M, q v`. -/
 theorem eval₂_monomialPoly {S : Type*} [CommSemiring R] [CommSemiring S] (f : R →+* S)
     (q : ι → S) (M : Finset ι) :
@@ -271,6 +289,16 @@ theorem totalDegree_sumCoeffsBelow_prod_parityFactor_eval₂_le [CommRing R] (I 
       (k * d₀) * (#I + 2 * (ℓ - 1)) :=
   Polynomial.totalDegree_sumCoeffsBelow_prod_parityFactor_le I ℓ fun i hi =>
     totalDegree_eval₂_monomialSumPoly_le f (q i) (hk i hi) (hq i hi)
+
+/-- `Polynomial.sumCoeffsBelow ℓ` commutes with finite sums. -/
+theorem sumCoeffsBelow_sum {α A : Type*} [Semiring A] (s : Finset α) (ℓ : ℕ)
+    (F : α → Polynomial A) :
+    Polynomial.sumCoeffsBelow ℓ (∑ a ∈ s, F a) =
+      ∑ a ∈ s, Polynomial.sumCoeffsBelow ℓ (F a) := by
+  unfold Polynomial.sumCoeffsBelow
+  rw [sum_comm]
+  refine sum_congr rfl fun j _ => ?_
+  rw [Polynomial.finsetSum_coeff]
 
 /-- **Equation (5.4) (congruence modulo `2 ^ ℓ`)**: for `ℓ ≥ 1`, summing the truncated product of
 parity factors of `monomialSum ℤ (P i) x` over `x : ι → Bool` recovers `commonZeroCount I P`
@@ -405,6 +433,20 @@ theorem varIncidence_sdiff_heavyVars_le [DecidableEq ι] (U : Finset ι) (F : Fi
 /-- The assignment that takes values from `b` on `S` and from `y` outside `S`. -/
 def patchAssignment [DecidableEq ι] (S : Finset ι) (b y : ι → Bool) (v : ι) : Bool :=
   if v ∈ S then b v else y v
+
+/-- On `S`, `patchAssignment S b y` agrees with `b`. -/
+@[simp]
+theorem patchAssignment_of_mem [DecidableEq ι] {S : Finset ι} {b y : ι → Bool} {v : ι}
+    (hv : v ∈ S) :
+    patchAssignment S b y v = b v :=
+  ite_eq_left hv
+
+/-- Outside `S`, `patchAssignment S b y` agrees with `y`. -/
+@[simp]
+theorem patchAssignment_of_notMem [DecidableEq ι] {S : Finset ι} {b y : ι → Bool} {v : ι}
+    (hv : v ∉ S) :
+    patchAssignment S b y v = y v :=
+  ite_eq_right hv
 
 /-- A monomial `M` evaluated on `patchAssignment S b y` factors into the indicator that `b` is all
 `true` on `M ∩ S` times `monomial R (M \ S) y`. -/

@@ -71,8 +71,7 @@ Appendix B.2–B.3 cleared-denominator parity-polynomial zero-counting pipeline
      `natDegree_univariateClearedParityCoord_design_le`,
      `natDegree_univariateClearedParityTruncatedSum_design_le`),
    - the rational homogenization identity $\tilde{H}_s(T) = \Omega [V^s] H(T)$ over `ℚ[X]`
-     (`map_univariateClearedParityCoord_design`,
-     `map_univariateClearedParityTruncatedSum_design`),
+     (`map_univariateClearedParityCoord_design`),
    - the Appendix B.2 coordinate `ℓ₁`-norm bound
      (`coeffNorm1_univariateClearedParityCoord_design_le`),
    - exact integer division and modulo-`2 ^ ℓ` recovery of `commonZeroCount I P` when `n < ℓ` and
