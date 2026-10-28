@@ -388,8 +388,8 @@ theorem inter_mem_PP {A B : Set α} (hA : A ∈ PP enc) (hB : B ∈ PP enc) :
   let C : Set (α × ℕ) := {x | if x.2 = 0 then x.1 ∈ A else x.1 ∈ B}
   have hC : C ∈ PP (encPair enc encUnary) := by
     refine mem_PP_iff_exists_GapP.mpr ⟨fun x => if decide (x.2 = 0) then gA x.1 else gB x.1,
-      GapP.ite_mem (by fun_prop) (GapP.comp_mem hgA ((.fst enc encUnary)))
-        (GapP.comp_mem hgB ((.fst enc encUnary))), fun x => ?_⟩
+      GapP.ite_mem (by fun_prop) (GapP.comp_mem hgA (.fst enc encUnary))
+        (GapP.comp_mem hgB (.fst enc encUnary)), fun x => ?_⟩
     by_cases h : x.2 = 0 <;> simp [C, h, hAg x.1, hBg x.1]
   have hd : ComputableInPolyTime
       (fun x : α × List Bool => x.2.getD 0 false && x.2.getD 1 false)

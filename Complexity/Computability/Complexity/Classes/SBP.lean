@@ -196,7 +196,6 @@ theorem exists_SBP_gap_pow (hA : A ∈ SBP enc) {m : ℕ} (hm : 0 < m) :
         Nat.pow_lt_pow_left ((h a).2 ha) (Nat.ne_of_gt hm)
   simpa only [computableInPolyTime_iff_computableTidilyInPolyTime] using this
 
-attribute [local fun_prop] ComputableInPolyTime in
 /-- Intersecting an SBP language with a BPP language preserves SBP.
 Square the SBP gap, amplify BPP beyond the exponential bound on that count,
 and multiply counts. This is an elementary consequence of counting closure and

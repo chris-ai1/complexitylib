@@ -399,7 +399,6 @@ theorem computableInPolyTime_normPt {p : γ → ℕ} {xs : γ → List ℕ}
   unfold normPt
   fun_prop
 
-attribute [local fun_prop] ComputableInPolyTime in
 @[fun_prop]
 theorem computableInPolyTime_updatePt {p : γ → ℕ} {xs : γ → List ℕ}
     {pt : γ → List (ℕ × ℕ)} {v z : γ → ℕ} (hp : ComputableInPolyTime p encIn encUnary)

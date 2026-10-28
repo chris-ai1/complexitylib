@@ -147,8 +147,6 @@ theorem mem_ParityP : L ∈ ParityP enc ↔ ∃ (p : Polynomial ℕ) (V : α × 
       exact Iff.of_eq (congrArg Odd (acceptCount_congr (W := V) (fun w => by simp) _).symm)
   simpa only [computableInPolyTime_iff_computableTidilyInPolyTime] using this
 
-attribute [local fun_prop] ComputableInPolySpace in
-attribute [local fun_prop] ComputableInPolyTime in
 /-- **`⊕P` through `#P`**: a problem is in `⊕P` exactly when it is the set of instances where some
 function in `#P` is odd. -/
 theorem mem_ParityP_iff_exists_SharpP :
@@ -167,8 +165,6 @@ theorem compl_mem_ParityP (hL : L ∈ ParityP enc) : Lᶜ ∈ ParityP enc := by
   rw [Set.mem_compl_iff, h a, Polynomial.eval_add, Polynomial.eval_one,
     odd_acceptCount_succVerifier_iff]
 
-attribute [local fun_prop] ComputableInPolySpace in
-attribute [local fun_prop] ComputableInPolyTime in
 /-- **`P ⊆ ⊕P`**: a decider accepts the empty string or nothing. -/
 theorem P_subset_ParityP : P enc ⊆ ParityP enc := by
   rintro L ⟨f, hf, h⟩

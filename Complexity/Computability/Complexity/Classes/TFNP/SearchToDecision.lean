@@ -199,8 +199,8 @@ private theorem computableInPolyTime_prefixSearchRun {V D : α × List Bool → 
         (fun y : (α × List Bool) × Bool => y.1.2 ++ [b])
         (encPair (encPair enc encBits) encBool) encBits := bitsAppend hu (const [b])
     unfold prefixSearchStep
-    exact cond (hV.comp (ha.prod hu)) hu
-      (cond (hD.comp (ha.prod (happ false))) (happ false) (happ true))
+    exact ite' (encC := encBool) (hV.comp (ha.prod hu)) hu
+      (ite' (encC := encBool) (hD.comp (ha.prod (happ false))) (happ false) (happ true))
   unfold prefixSearchRun
   refine foldlWithInput_of_bounded_growth (const []) ⟨(bitsReplicate false).comp hn, hstep,
     inferInstance, inferInstance⟩ (growth := fun _ => 1) ⟨.const 1, fun a u _ _ => ?_⟩
@@ -225,7 +225,8 @@ theorem FNP_subset_FPSearch_of_NP_subset_P
     ⟨mem_FNP.mpr ⟨⟨p, hp⟩, V, hV, hRV⟩, fun a => if V (a, prefixSearchRun V D n a) then
     some (prefixSearchRun V D n a) else none, ?_, fun a => ?_⟩
   · exact 
-      (cond (hV.comp (id'.prod hrun)) ((optionSome encBits).comp hrun) (const none))
+      (ite' (encC := encBool) (hV.comp (id'.prod hrun)) ((optionSome encBits).comp hrun)
+        (const none))
   · have hcorrect := rel_prefixSearchRun hRV (fun a u => (hDR (a, u)).symm) hp (a := a)
     constructor
     · intro w hw
@@ -281,7 +282,7 @@ theorem searchRel_mem_FPSearch_iff : searchRel ∈ FPSearch encCNF ↔ SAT ∈ P
       (id'))
   refine mem_FPSearch.mpr
     ⟨searchRel_mem_FNP, fun φ => if D φ then some (search D φ) else none,
-      (cond hD ((optionSome encBits).comp hsearch) (const none)),
+      (ite' (encC := encBool) hD ((optionSome encBits).comp hsearch) (const none)),
       fun φ => ⟨fun w hw => ?_, ?_⟩⟩
   · beta_reduce at hw
     split_ifs at hw with hDφ

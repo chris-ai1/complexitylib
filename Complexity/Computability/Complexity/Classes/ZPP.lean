@@ -189,11 +189,11 @@ theorem RP_inter_coRP_subset_ZPP : RP enc ∩ coRP enc ⊆ ZPP enc := by
     ((ComputableInPolyTime.unary_eval p₁).comp
       (ComputableInPolyTime.encoding_length enc)).comp (.fst _ _)
   have hpoly : ComputableInPolyTime V (encPair enc encBits) (encOption encBool) :=
-    ComputableInPolyTime.cond
+    ComputableInPolyTime.ite'
       (hV₁.comp ((ComputableInPolyTime.fst _ _).prod
         (ComputableInPolyTime.bitsTakeWithInput (.snd _ _) hlen)))
       (.const _)
-      (ComputableInPolyTime.cond
+      (ComputableInPolyTime.ite'
         (hV₂.comp ((ComputableInPolyTime.fst _ _).prod
           (ComputableInPolyTime.bitsDropWithInput (.snd _ _) hlen)))
         (.const _) (.const _))

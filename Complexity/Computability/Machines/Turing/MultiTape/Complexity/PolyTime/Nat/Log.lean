@@ -12,9 +12,9 @@ public import Mathlib.Data.Nat.Log
 import Complexity.Computability.Machines.Turing.MultiTape.Complexity.PolyTime.Iteration
 import Complexity.Computability.Machines.Turing.MultiTape.Complexity.PolyTime.List
 import Complexity.Computability.Machines.Turing.MultiTape.Complexity.PolyTime.Nat.Div
+import Complexity.Computability.Machines.Turing.MultiTape.Complexity.PolyTime.Plain
 import Complexity.Foundations.Data.Nat.Log
 import Mathlib.Data.Nat.Size
-import Complexity.Computability.Machines.Turing.MultiTape.Complexity.PolyTime.Plain
 
 /-!
 # Polynomial-time logarithms and bounded powers

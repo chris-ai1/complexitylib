@@ -96,7 +96,6 @@ def repeatMajority (enc : α ↪ List Bool) (r p : Polynomial ℕ) (V : α × Li
 
 variable {enc : α ↪ List Bool}
 
-attribute [local fun_prop] ComputableInPolyTime in
 /-- Majority votes of a polynomial-time decider take polynomial time. -/
 @[fun_prop]
 theorem computableInPolyTime_repeatMajority {V : α × List Bool → Bool}
@@ -129,7 +128,6 @@ def repeatAny (enc : α ↪ List Bool) (q p : Polynomial ℕ) (V : α × List Bo
 
 variable {enc : α ↪ List Bool}
 
-attribute [local fun_prop] ComputableInPolyTime in
 /-- Repeating a polynomial-time decider takes polynomial time. -/
 @[fun_prop]
 theorem computableInPolyTime_repeatAny {V : α × List Bool → Bool}

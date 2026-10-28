@@ -94,7 +94,7 @@ theorem compl_mem_PP (hA : A ∈ PP enc) : Aᶜ ∈ PP enc := by
         (encPair enc encBits) encBits :=
       ComputableInPolyTime.bitsTail.comp
         (ComputableInPolyTime.bitsTail.comp (.snd _ _))
-    exact ComputableInPolyTime.cond
+    exact ComputableInPolyTime.ite'
       ((ComputableInPolyTime.headD (encA := encBool) false).comp (.snd _ _))
       (ComputableInPolyTime.bool_not.comp
         (hV.comp (((ComputableInPolyTime.fst _ _).prod hw))))

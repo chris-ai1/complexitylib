@@ -116,7 +116,7 @@ theorem mem_PWithSharpPOracle_of_testBit {f : α → ℕ} (hf : f ∈ SharpP enc
   classical
   have hq : ComputableInPolyTime (fun a => encPair enc encNat (a, p.eval (enc a).length))
       enc encBits :=
-    ComputableInPolyTime.encoded (f := fun a => (a, p.eval (enc a).length))
+    ComputableInPolyTime.encoding_comp (f := fun a => (a, p.eval (enc a).length))
       (ComputableInPolyTime.id'.prod
         (ComputableInPolyTime.unary_to_binary.comp (f := fun n : ℕ => n)
           (g := fun a => p.eval (enc a).length) (by fun_prop)))

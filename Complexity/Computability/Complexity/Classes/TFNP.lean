@@ -244,8 +244,6 @@ theorem exists_total_of_mem_FPSearch (hR : R ∈ FPSearch enc) (htot : IsTotalSe
 
 /-! ### Domains and `NP` -/
 
-attribute [local fun_prop] ComputableInPolySpace in
-attribute [local fun_prop] ComputableInPolyTime in
 /-- **Domains of `FNP` relations are in `NP`**: a solution, framed and padded, is a certificate. -/
 theorem searchDomain_mem_NP (hR : R ∈ FNP enc) : searchDomain R ∈ NP enc := by
   obtain ⟨⟨p, hp⟩, V, hV, hR⟩ := mem_FNP.mp hR
@@ -336,7 +334,8 @@ theorem searchSum_mem_FNP (hR : R ∈ FNP enc) (hS : S ∈ FNP enc) : searchSum 
   · have htail : ComputableInPolyTime (fun x : α × List Bool => (x.1, x.2.tail))
         (encPair enc encBits) (encPair enc encBits) :=
       (fst enc encBits).prod (bitsTail.comp (snd enc encBits))
-    refine (bool_and' (bool_not.comp ?_) (cond ?_ (hV.comp htail) (hW.comp htail)))
+    refine (bool_and' (bool_not.comp ?_)
+      (ite' (encC := encBool) ?_ (hV.comp htail) (hW.comp htail)))
     · fun_prop
     · fun_prop
   · match w with

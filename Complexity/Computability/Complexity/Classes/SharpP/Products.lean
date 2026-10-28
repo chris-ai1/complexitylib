@@ -86,7 +86,6 @@ theorem acceptCount_indexedProductVerifier (r k : α → ℕ)
     simpa only [BitString.listRow_eq_ofFn (k a) ⟨i, hi⟩, BitString.ofList_ofFn,
       BitString.blocksEquiv_apply] using h ⟨i, hi⟩
 
-attribute [local fun_prop] ComputableInPolyTime in
 /-- A jointly uniform #P family on an instance and unary index may be multiplied over a
 polynomial-time unary range. If the original certificate polynomial is `p`, a common row width
 is `p(2|a|+1+r(a))`, and the unpadded total length is `r(a)` times that width. -/
