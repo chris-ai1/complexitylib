@@ -170,8 +170,6 @@ theorem exists_verifier_machine (enc : α ↪ List Bool) (p : Polynomial ℕ)
   obtain ⟨ks, State, hfinite, source, sourceClock, hnon, hs⟩ := exists_framedGuess_machine enc p
   obtain ⟨c, d, kv, VerifyState, hfinite', nativeVerifier, hv⟩ :=
     Internal.NormalForm.polyTime hverify
-  have ht (x : α × List Bool) : c * ((encPair enc encBits x).length + 1) ^ d ≤
-      c * ((encPair enc encBits x).length + 1) ^ d := le_rfl
   let consumer := ofDeterministic nativeVerifier
   let compiled := consumer.comp source true
   let verifyClock : Polynomial ℕ := C c * (2 * X + 1 + p + 1) ^ d
@@ -185,8 +183,9 @@ theorem exists_verifier_machine (enc : α ↪ List Bool) (p : Polynomial ℕ)
         (encBool (verifier (a, word))) := by
     have htime : c * ((encPair enc encBits (a, word)).length + 1) ^ d ≤
         verifyClock.eval (enc a).length := by
-      simpa only [verifyClock, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one,
-        eval_ofNat, length_encPair, encBits_apply, hword] using ht (a, word)
+      simp only [verifyClock, eval_mul, eval_C, eval_pow, eval_add, eval_X, eval_one,
+        eval_ofNat, length_encPair, encBits_apply, hword]
+      exact le_rfl
     exact ((hv (a, word)).mono htime le_rfl).runFrom_initCfg_eq
   have hsecond : ∀ result ∈ source.runList (sourceClock.eval (enc a).length)
       (source.initialConfig (enc a)).tapes,
