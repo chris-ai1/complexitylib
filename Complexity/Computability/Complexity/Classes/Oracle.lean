@@ -265,15 +265,11 @@ theorem mem_NPWithOracle {A : Set (List Bool)} {enc : α ↪ List Bool} {L : Set
       ComputableInPolyTimeWithOracle A V (encPair enc encBits) encBool ∧ IsVerifier enc p V L :=
   Iff.rfl
 
-attribute [local fun_prop] ComputableInPolySpace in
-attribute [local fun_prop] ComputableInPolyTime in
 /-- Every problem in `P` is in `P` relative to every oracle. -/
 theorem P_subset_PWithOracle (A : Set (List Bool)) (enc : α ↪ List Bool) :
     P enc ⊆ PWithOracle A enc := fun _ ⟨f, hf, h⟩ =>
   ⟨f, hf.computableInPolyTimeWithOracle A, h⟩
 
-attribute [local fun_prop] ComputableInPolySpace in
-attribute [local fun_prop] ComputableInPolyTime in
 /-- Every problem in `NP` is in `NP` relative to every oracle. -/
 theorem NP_subset_NPWithOracle (A : Set (List Bool)) (enc : α ↪ List Bool) :
     NP enc ⊆ NPWithOracle A enc := fun _ ⟨p, V, hV, h⟩ =>

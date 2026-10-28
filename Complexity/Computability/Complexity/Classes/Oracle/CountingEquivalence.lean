@@ -68,7 +68,7 @@ theorem PWithPPOracle_subset_PWithSharpPOracle :
   let request : List Bool → List Bool :=
     fun w => encPair encBits encNat (w, p.eval w.length)
   have hrequest : ComputableInPolyTime request encBits encBits :=
-    ComputableInPolyTime.encoded
+    ComputableInPolyTime.encoding_comp
       (ComputableInPolyTime.id'.prod
         (ComputableInPolyTime.unary_to_binary.comp
           (by fun_prop : ComputableInPolyTime

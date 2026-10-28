@@ -40,7 +40,7 @@ realization with the same joint law, and `Oracle.Composition` composes certifica
 * `Cslib.Probability.IsOraclePPTOn.length_le`: uniform bounds on supported encoded output lengths.
 * `Turing.MultiTapeTM.ComputableTidilyInPolyTime.isOraclePPTOn`,
   `Turing.MultiTapeTM.ComputableInPolyTime.isOraclePPTOn`: deterministic functional programs
-  reuse the existing tidy machine certificate.
+  are uniform oracle-PPT programs; the plain bridge first normalizes its machine.
 
 ## References
 
