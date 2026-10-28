@@ -359,10 +359,12 @@ theorem SAT_mem_P_of_reducible_of_tendsto (hR : PolyTimeReducible encCNF encBits
   refine ⟨fun φ => (smallSAT N).any fun w => decide (encCNF (selfReduce R N φ) = w), ?_,
     fun φ => ?_⟩
   · have hdec : ComputableInPolyTime
-        (fun φ => (smallSAT N).any fun w => decide (encCNF φ = w)) encCNF encBool :=
-      .of_tidy <| ComputableTidilyInPolyTime.anyConst _ fun w _ =>
-        (ComputableTidilyInPolyTime.decide_eq encBits).comp
-          ((ComputableTidilyInPolyTime.encode encCNF).prod (ComputableTidilyInPolyTime.const w))
+        (fun φ => (smallSAT N).any fun w => decide (encCNF φ = w)) encCNF encBool := by
+      simpa only [Function.comp_def, List.any_eq_not_all_not] using
+        ComputableInPolyTime.bool_not.comp (ComputableInPolyTime.allConst (smallSAT N) fun w _ =>
+          ComputableInPolyTime.bool_not.comp (ComputableInPolyTime.decide_eq'
+            (ComputableInPolyTime.of_eq (f := fun φ : CNF ℕ => encCNF φ) (encOut := encBits)
+              fun _ => rfl) (.const w)))
     exact hdec.comp hreduce
   · obtain ⟨hsat, hlen⟩ := hinv φ
     have hmem := mem_smallSAT (N := N) (φ := selfReduce R N φ) (by rw [selfReduce]; omega)
