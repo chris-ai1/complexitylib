@@ -212,12 +212,6 @@ theorem lengthUnary : ComputableTidilyInO (fun l : List Bool => l.length) encBit
   .of_bounds ComputableTidilyInTimeAndSpace.length_bits 8 (fun l => by omega)
     (fun _ => Nat.zero_le _) fun l => by simp only [encUnary_apply, List.length_replicate]; omega
 
-/-- `Turing.MultiTapeTM.ComputableTidilyInO.lengthUnary` for plain certificates. -/
-theorem _root_.Turing.MultiTapeTM.ComputableInO.lengthUnary :
-    ComputableInO (fun l : List Bool => l.length) encBits encUnary (fun l => l.length)
-      fun l => l.length :=
-  ComputableInO.of_tidy ComputableTidilyInO.lengthUnary
-
 /-- Doubling `m` once for each element of a list of length `n` multiplies it by `2 ^ n`. -/
 private theorem foldl_double (n m : ℕ) :
     (List.replicate n true).foldl (fun m _ => m + m) m = m * 2 ^ n := by
@@ -264,12 +258,6 @@ theorem unary_two_pow : ComputableTidilyInO (fun n : ℕ => 2 ^ n) encUnary encU
     simp only [encUnary_apply, encBits_apply, List.length_replicate]
     omega
   · rw [foldl_double, one_mul]
-
-/-- `Turing.MultiTapeTM.ComputableTidilyInO.unary_two_pow` for plain certificates. -/
-theorem _root_.Turing.MultiTapeTM.ComputableInO.unary_two_pow :
-    ComputableInO (fun n : ℕ => 2 ^ n) encUnary encUnary (fun n => (n + 1) * 2 ^ n)
-      fun n => 2 ^ n :=
-  ComputableInO.of_tidy ComputableTidilyInO.unary_two_pow
 
 end ComputableTidilyInO
 

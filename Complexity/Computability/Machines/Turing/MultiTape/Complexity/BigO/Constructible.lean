@@ -110,12 +110,6 @@ theorem lengthNat : ComputableTidilyInO (fun l : List Bool => l.length) encBits 
     nlinarith
   · simp [List.foldl_const]
 
-/-- `Turing.MultiTapeTM.ComputableTidilyInO.lengthNat` for plain certificates. -/
-theorem _root_.Turing.MultiTapeTM.ComputableInO.lengthNat :
-    ComputableInO (fun l : List Bool => l.length) encBits encNat (fun l => (l.length + 1) ^ 2)
-      fun l => l.length + 1 :=
-  ComputableInO.of_tidy ComputableTidilyInO.lengthNat
-
 /-- The comparison of unary numbers, by counting down, within quadratic time and linear space. -/
 theorem unaryLe : ComputableTidilyInO (fun p : ℕ × ℕ => decide (p.1 ≤ p.2))
     (encPair encUnary encUnary) encBool (fun p => ((encPair encUnary encUnary p).length + 1) ^ 2)
