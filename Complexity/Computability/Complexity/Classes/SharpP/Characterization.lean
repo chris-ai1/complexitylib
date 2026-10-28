@@ -58,9 +58,8 @@ theorem exists_verifier_counting_machine (enc : α ↪ List Bool) (p : Polynomia
         machine.rejectCount (clock.eval (enc a).length) (Cfg.init machine.initial (enc a)) =
           2 ^ (p.eval (enc a).length) -
             Complexity.acceptCount verifier a (p.eval (enc a).length) := by
-  have hverify := hverify.tidy
   obtain ⟨k, State, hfinite, machine, clock, hnon, hm⟩ :=
-    exists_verifier_machine enc p verifier hverify
+    exists_verifier_machine enc p verifier hverify.tidy
   refine ⟨k, State, hfinite, machine, clock, hnon, fun a => ?_⟩
   have hhalt : machine.HaltsWithin (clock.eval (enc a).length)
       (Cfg.init machine.initial (enc a)) := (hm a).1
