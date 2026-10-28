@@ -204,14 +204,13 @@ theorem consistentHistStep_suffix {h₂ : History} {s : History × Bool × Bool}
 theorem computableInPolyTime_consistentHist :
     Turing.MultiTapeTM.ComputableInPolyTime (fun p : History × History => consistentHist p.1 p.2)
       (encPair encHistory encHistory) encBool := by
-  refine .of_tidy ?_
-  have hstep : ComputableTidilyInPolyTime
+  have hstep : ComputableInPolyTime
       (fun q : (History × Bool × Bool) × (List Bool × List Bool) => consistentHistStep q.1 q.2)
       (encPair (encPair encHistory (encPair encBool encBool)) (encPair encBits encBits))
       (encPair encHistory (encPair encBool encBool)) := by
     unfold consistentHistStep
     fun_prop
-  have hfold := (foldl_spec (encIn := encPair encHistory encHistory)
+  have hfold := (ComputableInPolyTime.foldl_spec (encIn := encPair encHistory encHistory)
     (encA := encPair encBits encBits) (encL := encHistory)
     (encB := encPair encHistory (encPair encBool encBool))
     (list := Prod.fst) (init := fun p => (p.2, true, true)) (step := consistentHistStep)
@@ -226,7 +225,7 @@ theorem computableInPolyTime_consistentHist :
       have hp := length_le_encPair_right encHistory encHistory p
       simp only [length_encPair, encBool_apply, List.length_singleton]
       lia)).1
-  have hres : ComputableTidilyInPolyTime
+  have hres : ComputableInPolyTime
       (fun p : History × History => (p.1.foldl consistentHistStep (p.2, true, true)).2.2)
       (encPair encHistory encHistory) encBool := by fun_prop
   exact hres.of_enc_eq fun p => by
@@ -264,7 +263,7 @@ theorem computableInPolyTime_accepts [Finite Control] :
       accepts M q.1 q.2.1 q.2.2)
       (encPair encBits (encPair encBits encTaggedHistory)) encBool :=
   (Interaction.computableInPolyTime_accepts matchTaggedOp Prod.snd M
-    (fun op => .of_tidy (by unfold matchTaggedOp; fun_prop)) (.of_tidy (snd _ _)))
+    (fun op => by unfold matchTaggedOp; fun_prop) (.snd _ _))
 
 /-! ### Correspondence between `accepts` and `coinProgram` against deterministic provers -/
 
@@ -910,18 +909,11 @@ theorem MIP_subset_NEXP : MIP enc ⊆ NEXP enc := by
   rintro A ⟨p, verifier, hV, hproto⟩
   obtain ⟨_, k, Control, hfinControl, M, c, d, hreal⟩ := hV
   let f (n : ℕ) : ℕ := 32 * (p + n + c * (n + 1) ^ d + 1) ^ 2 + c * (n + 1) ^ d
-  have hf : ComputableTidilyInPolyTime f encUnary encUnary := by
-    have hpoly : ComputableTidilyInPolyTime (fun n : ℕ => c * (n + 1) ^ d) encUnary encUnary :=
-      (unary_eval (Polynomial.C c * (Polynomial.X + 1) ^ d)).of_enc_eq fun n => by simp
-    have hB : ComputableTidilyInPolyTime (fun n : ℕ => p + n + c * (n + 1) ^ d + 1)
-        encUnary encUnary := by
-      have hp_n := unary_add.comp ((const p).prod id')
-      have hp_n_t := unary_add.comp (hp_n.prod hpoly)
-      exact unary_add.comp (hp_n_t.prod (const 1))
-    have hsq : ComputableTidilyInPolyTime
-        (fun n : ℕ => 32 * (p + n + c * (n + 1) ^ d + 1) ^ 2) encUnary encUnary :=
-      unary_mul.comp ((const 32).prod ((unary_pow 2).comp hB))
-    exact unary_add.comp (hsq.prod hpoly)
+  have hf : ComputableInPolyTime f encUnary encUnary := by
+    have hpoly : ComputableInPolyTime (fun n : ℕ => c * (n + 1) ^ d) encUnary encUnary :=
+      (ComputableInPolyTime.unary_eval (Polynomial.C c * (Polynomial.X + 1) ^ d)).of_enc_eq
+        fun n => by simp
+    fun_prop
   have hn : ∀ n, n ≤ f n := fun n => by
     have hB : n ≤ p + n + c * (n + 1) ^ d + 1 := by lia
     have hsq : p + n + c * (n + 1) ^ d + 1 ≤ (p + n + c * (n + 1) ^ d + 1) ^ 2 :=
@@ -1022,7 +1014,7 @@ theorem MIP_subset_NEXP : MIP enc ⊆ NEXP enc := by
         natCast_div_le_natCast_div_iff hpos (by norm_num)] at hineq
       lia
   rw [hpre]
-  exact preimage_pad_mem_NEXP hNP (.of_tidy hf) hn
+  exact preimage_pad_mem_NEXP hNP hf hn
 
 /-- **`MIP₂ ⊆ NEXP`**: every problem with a two-prover interactive proof is decidable in
 nondeterministic exponential time. -/
