@@ -35,3 +35,52 @@ example : ComputableInPolyTime (fun n : ℕ => 2 ^ Nat.clog 2 n) encUnary encUna
 example : ComputableInPolyTime (fun n : ℕ => ∏ _i ∈ Finset.range n, (-2 : ℤ))
     encUnary encIntBin :=
   .intBin_prod_range (f := fun _ => -2) (.const _) .id'
+
+/-- An alternating sign, as a binary integer indexed by a unary pair. -/
+private def sign (p : ℕ × ℕ) : ℤ := (-1) ^ (p.1 + p.2)
+
+/-- `∏ i < n, (-1) ^ (n + i)` as a binary integer: `fun_prop` uses the plain range product. -/
+example : ComputableInPolyTime (fun n : ℕ => ∏ i ∈ Finset.range n, sign (n, i))
+    encUnary encIntBin := by
+  have hsign : ComputableInPolyTime sign (encPair encUnary encUnary) encIntBin := by
+    unfold sign
+    fun_prop
+  fun_prop
+
+/-! The tidy-only primitives below need no plain wrapper: `fun_prop` proves their plain goals. -/
+
+/-- `decide_ne`: a unary number differs from its double. -/
+example : ComputableInPolyTime (fun n : ℕ => decide (n ≠ 2 * n)) encUnary encBool := by
+  fun_prop
+
+/-- `listTakeWithInput`: the first `n` entries of a list of length `n`, doubled. -/
+example : ComputableInPolyTime (fun l : List ℕ => (l ++ l).take l.length)
+    (encList encUnary) (encList encUnary) := by
+  fun_prop
+
+/-- `intBin_neg`: negate a binary integer. -/
+example : ComputableInPolyTime (fun z : ℤ => -z) encIntBin encIntBin := by
+  fun_prop
+
+/-- `intBin_prod`: the product of a list of binary integers. -/
+example : ComputableInPolyTime (fun l : List ℤ => l.prod) (encList encIntBin) encIntBin := by
+  fun_prop
+
+/-- `intBin_pow`: a binary integer to a unary power. -/
+example : ComputableInPolyTime (fun p : ℤ × ℕ => p.1 ^ p.2) (encPair encIntBin encUnary)
+    encIntBin := by
+  fun_prop
+
+/-- `intBin_pow'`: a computed binary integer to a computed unary power. -/
+example : ComputableInPolyTime (fun p : ℤ × ℕ => (p.1 * p.1) ^ (p.2 + 1))
+    (encPair encIntBin encUnary) encIntBin := by
+  fun_prop
+
+/-- `zipIdx`: number the entries of a list of unary numbers. -/
+example : ComputableInPolyTime (fun l : List ℕ => l.zipIdx) (encList encUnary)
+    (encList (encPair encUnary encUnary)) := by
+  fun_prop
+
+/-- `listIsEmpty'`: test whether a list of unary numbers is empty. -/
+example : ComputableInPolyTime (fun l : List ℕ => l.isEmpty) (encList encUnary) encBool := by
+  fun_prop
