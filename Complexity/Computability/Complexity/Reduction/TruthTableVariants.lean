@@ -25,8 +25,8 @@ Restrictions of polynomial-time truth-table reductions
 * a **disjunctive** (**conjunctive**) truth-table reduction accepts exactly when some (every)
   query is in the target set, so it needs no combiner;
 * a **positive** truth-table reduction has a combiner that is monotone in the answers. Positivity
-  is taken semantically, as a monotone polynomial-time combiner, as in Selman's positive
-  reductions; it is not the syntactic notion of a Boolean formula built from `∧` and `∨`.
+  is taken semantically, as a monotone polynomial-time combiner; it is not the syntactic notion
+  of a Boolean formula built from `∧` and `∨`.
 
 ## Main definitions
 
