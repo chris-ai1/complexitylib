@@ -185,13 +185,13 @@ end Turing.MultiTapeTM
 
 namespace Cslib.Crypto.PRG.NisanWigderson
 
-open Turing.MultiTapeTM.ComputableTidilyInPolyTime
+open Turing.MultiTapeTM.ComputableInPolyTime
 
 variable {γ : Type} {encIn : γ ↪ List Bool}
 
 /-- Counting the common ones of two masks is polynomial-time. -/
-private theorem computableTidilyInPolyTime_overlapCount :
-    ComputableTidilyInPolyTime (fun p : List Bool × List Bool => overlapCount p.1 p.2)
+private theorem computableInPolyTime_overlapCount :
+    ComputableInPolyTime (fun p : List Bool × List Bool => overlapCount p.1 p.2)
       (encPair encBits encBits) encUnary := by
   unfold overlapCount
   fun_prop
@@ -209,12 +209,12 @@ private theorem greedyStep_eq (n a : ℕ) (kept : List (List Bool)) (w : List Bo
         kept ++ [w] else kept := by
   simp [greedyStep, Bool.and_eq_true, List.all_eq_true]
 
-private theorem computableTidilyInPolyTime_greedyStep : ComputableTidilyInPolyTime
+private theorem computableInPolyTime_greedyStep : ComputableInPolyTime
     (fun p : ((ℕ × ℕ) × List (List Bool)) × List Bool => greedyStep p.1.1.1 p.1.1.2 p.1.2 p.2)
     (encPair (encPair (encPair encUnary encUnary) (encList encBits)) encBits)
     (encList encBits) := by
   simp only [greedyStep_eq]
-  have := computableTidilyInPolyTime_overlapCount
+  have := computableInPolyTime_overlapCount
   fun_prop
 
 /-- **The greedy design in polynomial time.** With computed seed length `seed x`, block size
@@ -228,16 +228,12 @@ theorem computableInPolyTime_greedyMasks {seed block overlap : γ → ℕ}
     (hbudget : PolyBounded (fun x => (encIn x).length) fun x => 2 ^ seed x) :
     ComputableInPolyTime (fun x => greedyMasks (seed x) (block x) (overlap x)) encIn
       (encList encBits) := by
-  have hseed := hseed.tidy
-  have hblock := hblock.tidy
-  have hoverlap := hoverlap.tidy
-  refine .of_tidy ?_
   unfold greedyMasks
   refine foldlWith_of_bounded_growth (encA := encBits) (par := fun x => (block x, overlap x))
     (step := fun p kept w => greedyStep p.1 p.2 kept w) (growth := fun x => 2 * seed x + 1)
     (hblock.prod hoverlap)
-    (ComputableInPolyTime.bitsEnumList_of_polyBounded (.of_tidy hseed) hbudget).tidy (.const [])
-    computableTidilyInPolyTime_greedyStep
+    (ComputableInPolyTime.bitsEnumList_of_polyBounded hseed hbudget) (.const [])
+    computableInPolyTime_greedyStep
     ((hseed.polyBounded.mul (.const 2)).add (.const 1) |>.mono fun x => by simp [Nat.mul_comm])
     fun x kept w hw => ?_
   have hw : w.length = seed x := Cslib.BitString.mem_enumList.1 hw
