@@ -119,12 +119,6 @@ variable {ι κ σ R : Type*}
 def monomialSum (R : Type*) [CommRing R] (𝓜 : Finset (Finset ι)) (x : ι → Bool) : R :=
   ∑ M ∈ 𝓜, monomial R M x
 
-/-- The empty family of monomials evaluates to `0`. -/
-@[simp]
-theorem monomialSum_empty (R : Type*) [CommRing R] (x : ι → Bool) :
-    monomialSum R (∅ : Finset (Finset ι)) x = 0 := by
-  simp only [monomialSum, sum_empty]
-
 /-- A singleton family `{M}` evaluates to `monomial R M x`. -/
 @[simp]
 theorem monomialSum_singleton (R : Type*) [CommRing R] (M : Finset ι) (x : ι → Bool) :
@@ -138,29 +132,6 @@ theorem monomialSum_eq_card_filter (R : Type*) [CommRing R] (𝓜 : Finset (Fins
     monomialSum R 𝓜 x = (#{M ∈ 𝓜 | ∀ v ∈ M, x v = true} : R) := by
   unfold monomialSum
   simp only [monomial_apply, sum_boole]
-
-/-- If every monomial in `𝓜` has size at most `k`, then `monomialSum R 𝓜` has degree at most `k`
-on the Boolean cube. -/
-theorem monomialSum_mem_lowDegree (R : Type*) [CommRing R] {𝓜 : Finset (Finset ι)} {k : ℕ}
-    (hk : ∀ M ∈ 𝓜, #M ≤ k) :
-    monomialSum R 𝓜 ∈ lowDegree R ι k := by
-  have hEq : monomialSum R 𝓜 = ∑ M ∈ 𝓜, monomial R M := by
-    funext x
-    simp only [monomialSum, Finset.sum_apply]
-  rw [hEq]
-  exact sum_mem_lowDegree 𝓜 fun M hM => monomial_mem_lowDegree (hk M hM)
-
-/-- Over `ℤ`, `monomialSum ℤ 𝓜 x` is nonnegative. -/
-theorem monomialSum_int_nonneg (𝓜 : Finset (Finset ι)) (x : ι → Bool) :
-    0 ≤ monomialSum ℤ 𝓜 x := by
-  rw [monomialSum_eq_card_filter]
-  exact Nat.cast_nonneg _
-
-/-- Over `ℤ`, `monomialSum ℤ 𝓜 x` is at most `#𝓜`. -/
-theorem monomialSum_int_le_card (𝓜 : Finset (Finset ι)) (x : ι → Bool) :
-    monomialSum ℤ 𝓜 x ≤ #𝓜 := by
-  rw [monomialSum_eq_card_filter]
-  exact Nat.cast_le.mpr (card_filter_le _ _)
 
 /-- A monomial sum vanishes in `ZMod 2` at `x` if and only if its integer lift `monomialSum ℤ 𝓜 x`
 is even. -/
@@ -251,19 +222,6 @@ def monomialPoly (R : Type*) [CommSemiring R] (M : Finset ι) : MvPolynomial ι 
 def monomialSumPoly (R : Type*) [CommSemiring R] (𝓜 : Finset (Finset ι)) : MvPolynomial ι R :=
   ∑ M ∈ 𝓜, monomialPoly R M
 
-/-- Evaluating `monomialPoly R M` at `v ↦ bitVal R (x v)` gives `monomial R M x`. -/
-@[simp]
-theorem aeval_bitVal_monomialPoly (R : Type*) [CommRing R] (M : Finset ι) (x : ι → Bool) :
-    aeval (fun v => bitVal R (x v)) (monomialPoly R M) = monomial R M x := by
-  simp only [monomialPoly, monomial, map_prod, aeval_X]
-
-/-- Evaluating `monomialSumPoly R 𝓜` at `v ↦ bitVal R (x v)` gives `monomialSum R 𝓜 x`. -/
-@[simp]
-theorem aeval_bitVal_monomialSumPoly (R : Type*) [CommRing R] (𝓜 : Finset (Finset ι))
-    (x : ι → Bool) :
-    aeval (fun v => bitVal R (x v)) (monomialSumPoly R 𝓜) = monomialSum R 𝓜 x := by
-  simp only [monomialSumPoly, monomialSum, map_sum, aeval_bitVal_monomialPoly]
-
 /-- Evaluating `monomialPoly R M` via `eval₂ f q` gives `∏ v ∈ M, q v`. -/
 theorem eval₂_monomialPoly {S : Type*} [CommSemiring R] [CommSemiring S] (f : R →+* S)
     (q : ι → S) (M : Finset ι) :
@@ -272,33 +230,6 @@ theorem eval₂_monomialPoly {S : Type*} [CommSemiring R] [CommSemiring S] (f : 
   rw [← coe_eval₂Hom, map_prod]
   refine prod_congr rfl fun v _ => ?_
   simp only [coe_eval₂Hom, eval₂_X]
-
-/-- Evaluating `monomialSumPoly R 𝓜` via `eval₂ f q` gives `∑ M ∈ 𝓜, ∏ v ∈ M, q v`. -/
-theorem eval₂_monomialSumPoly {S : Type*} [CommSemiring R] [CommSemiring S] (f : R →+* S)
-    (q : ι → S) (𝓜 : Finset (Finset ι)) :
-    (monomialSumPoly R 𝓜).eval₂ f q = ∑ M ∈ 𝓜, ∏ v ∈ M, q v := by
-  unfold monomialSumPoly
-  rw [← coe_eval₂Hom, map_sum]
-  refine sum_congr rfl fun M _ => ?_
-  rw [coe_eval₂Hom, eval₂_monomialPoly]
-
-/-- `monomialPoly R M` has total degree at most `#M`. -/
-theorem totalDegree_monomialPoly_le (R : Type*) [CommSemiring R] (M : Finset ι) :
-    (monomialPoly R M).totalDegree ≤ #M := by
-  unfold monomialPoly
-  refine (totalDegree_finsetProd M _).trans ?_
-  refine (sum_le_card_nsmul M _ 1 fun v _ => ?_).trans ?_
-  · exact (totalDegree_monomial_le _ _).trans (by simp)
-  · simp only [smul_eq_mul, mul_one, le_rfl]
-
-/-- If every monomial `M ∈ 𝓜` has size at most `k`, then `monomialSumPoly R 𝓜` has total degree
-at most `k`. -/
-theorem totalDegree_monomialSumPoly_le (R : Type*) [CommSemiring R] {𝓜 : Finset (Finset ι)}
-    {k : ℕ} (hk : ∀ M ∈ 𝓜, #M ≤ k) :
-    (monomialSumPoly R 𝓜).totalDegree ≤ k := by
-  unfold monomialSumPoly
-  refine (totalDegree_finsetSum 𝓜 _).trans (Finset.sup_le fun M hM => ?_)
-  exact (totalDegree_monomialPoly_le R M).trans (hk M hM)
 
 /-- Substituting polynomials `q v` of total degree at most `d₀` into `monomialPoly R M` produces a
 polynomial of total degree at most `#M * d₀`. -/
@@ -327,20 +258,6 @@ theorem totalDegree_eval₂_monomialSumPoly_le [CommSemiring R] (f : R →+* MvP
 
 /-! ### 3. Truncated parity-factor degree bound (eq. 5.5) and count recovery (eq. 5.4) -/
 
-/-- **Equation (5.5) (retained coefficient degree bound under variable replacement)**: if every
-equation `P i` (`i ∈ I`) has degree at most `k` and each variable is replaced by a polynomial
-`q i v` of total degree at most `d₀`, then for `s < ℓ` the `V ^ s`-coefficient of the product of
-parity factors has total degree at most `(k * d₀) * (#I + 2 * (ℓ - 1))`. -/
-theorem totalDegree_coeff_prod_parityFactor_eval₂_le_of_lt [CommRing R] (I : Finset κ)
-    {P : κ → Finset (Finset ι)} {ℓ s k d₀ : ℕ} (hs : s < ℓ)
-    (f : R →+* MvPolynomial σ R) (q : κ → ι → MvPolynomial σ R)
-    (hk : ∀ i ∈ I, ∀ M ∈ P i, #M ≤ k)
-    (hq : ∀ i ∈ I, ∀ M ∈ P i, ∀ v ∈ M, (q i v).totalDegree ≤ d₀) :
-    ((∏ i ∈ I, Polynomial.parityFactor ℓ ((monomialSumPoly R (P i)).eval₂ f (q i))).coeff
-      s).totalDegree ≤ (k * d₀) * (#I + 2 * (ℓ - 1)) :=
-  Polynomial.totalDegree_coeff_prod_parityFactor_le_of_lt I hs fun i hi =>
-    totalDegree_eval₂_monomialSumPoly_le f (q i) (hk i hi) (hq i hi)
-
 /-- **Equation (5.5) (truncated product degree bound under variable replacement)**: under the same
 hypotheses, the truncated sum `S_ℓ(∏ i ∈ I, B_i(V))` has total degree at most
 `(k * d₀) * (#I + 2 * (ℓ - 1))`. -/
@@ -354,16 +271,6 @@ theorem totalDegree_sumCoeffsBelow_prod_parityFactor_eval₂_le [CommRing R] (I 
       (k * d₀) * (#I + 2 * (ℓ - 1)) :=
   Polynomial.totalDegree_sumCoeffsBelow_prod_parityFactor_le I ℓ fun i hi =>
     totalDegree_eval₂_monomialSumPoly_le f (q i) (hk i hi) (hq i hi)
-
-/-- `Polynomial.sumCoeffsBelow ℓ` commutes with finite sums. -/
-theorem sumCoeffsBelow_sum {α A : Type*} [Semiring A] (s : Finset α) (ℓ : ℕ)
-    (F : α → Polynomial A) :
-    Polynomial.sumCoeffsBelow ℓ (∑ a ∈ s, F a) =
-      ∑ a ∈ s, Polynomial.sumCoeffsBelow ℓ (F a) := by
-  unfold Polynomial.sumCoeffsBelow
-  rw [sum_comm]
-  refine sum_congr rfl fun j _ => ?_
-  rw [Polynomial.finsetSum_coeff]
 
 /-- **Equation (5.4) (congruence modulo `2 ^ ℓ`)**: for `ℓ ≥ 1`, summing the truncated product of
 parity factors of `monomialSum ℤ (P i) x` over `x : ι → Bool` recovers `commonZeroCount I P`
@@ -466,15 +373,6 @@ theorem card_heavyVars_le_div [DecidableEq ι] (U : Finset ι) (F : Finset κ)
     #(heavyVars U F scope b₀) ≤ totalIncidence F scope / b₀ :=
   (Nat.le_div_iff_mul_le hb₀).mpr (card_heavyVars_mul_le_totalIncidence U F scope b₀ hU)
 
-/-- **§5.5 (heavy-variable bound for `k`-bounded scopes)**: if `b₀ > 0` and every scope has size at
-most `k`, then `#(heavyVars U F scope b₀) ≤ (k * #F) / b₀`. -/
-theorem card_heavyVars_le_mul_card_div [DecidableEq ι] (U : Finset ι) (F : Finset κ)
-    (scope : κ → Finset ι) {k b₀ : ℕ} (hb₀ : 0 < b₀) (hU : ∀ i ∈ F, scope i ⊆ U)
-    (hk : ∀ i ∈ F, #(scope i) ≤ k) :
-    #(heavyVars U F scope b₀) ≤ (k * #F) / b₀ :=
-  (card_heavyVars_le_div U F scope hb₀ hU).trans
-    (Nat.div_le_div_right (totalIncidence_le_mul_card F scope hk))
-
 /-- Every variable in `U \ heavyVars U F scope b₀` has incidence at most `b₀`. -/
 theorem varIncidence_le_of_mem_sdiff_heavyVars [DecidableEq ι] {U : Finset ι} {F : Finset κ}
     {scope : κ → Finset ι} {b₀ : ℕ} {v : ι} (hv : v ∈ U \ heavyVars U F scope b₀) :
@@ -507,20 +405,6 @@ theorem varIncidence_sdiff_heavyVars_le [DecidableEq ι] (U : Finset ι) (F : Fi
 /-- The assignment that takes values from `b` on `S` and from `y` outside `S`. -/
 def patchAssignment [DecidableEq ι] (S : Finset ι) (b y : ι → Bool) (v : ι) : Bool :=
   if v ∈ S then b v else y v
-
-/-- On `S`, `patchAssignment S b y` agrees with `b`. -/
-@[simp]
-theorem patchAssignment_of_mem [DecidableEq ι] {S : Finset ι} {b y : ι → Bool} {v : ι}
-    (hv : v ∈ S) :
-    patchAssignment S b y v = b v :=
-  ite_eq_left hv
-
-/-- Outside `S`, `patchAssignment S b y` agrees with `y`. -/
-@[simp]
-theorem patchAssignment_of_notMem [DecidableEq ι] {S : Finset ι} {b y : ι → Bool} {v : ι}
-    (hv : v ∉ S) :
-    patchAssignment S b y v = y v :=
-  ite_eq_right hv
 
 /-- A monomial `M` evaluated on `patchAssignment S b y` factors into the indicator that `b` is all
 `true` on `M ∩ S` times `monomial R (M \ S) y`. -/
