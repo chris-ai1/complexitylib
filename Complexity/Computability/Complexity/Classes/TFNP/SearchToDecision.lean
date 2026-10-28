@@ -74,7 +74,7 @@ directly: the search problem `Cslib.Complexity.SAT.searchRel` of assignment cert
 
 namespace Cslib.Complexity
 
-open Turing.MultiTapeTM ComputableTidilyInPolyTime
+open Turing.MultiTapeTM ComputableInPolyTime
 
 variable {α : Type} {enc : α ↪ List Bool} {R : α → List Bool → Prop}
 
@@ -95,7 +95,7 @@ theorem prefixSearch_mem_FNP (hR : R ∈ FNP enc) : prefixSearch R ∈ FNP (encP
     have h₂ := Polynomial.eval_mono p (length_le_encPair_left enc encBits x)
     simp only [List.length_append] at h₁
     omega
-  · exact .of_tidy (hV.tidy.comp ((fst (encPair enc encBits) encBits).fst'.prod
+  · exact (hV.comp ((fst (encPair enc encBits) encBits).fst'.prod
       (bitsAppend (fst (encPair enc encBits) encBits).snd' (snd (encPair enc encBits) encBits))))
 
 /-! ### Search through prefixes -/
@@ -183,19 +183,19 @@ theorem rel_prefixSearchRun {n : α → ℕ} (hn : ∀ a w, R a w → w.length �
 end Correctness
 
 /-- The search through prefixes is polynomial-time when `V`, `D` and the number of steps are. -/
-private theorem computableTidilyInPolyTime_prefixSearchRun {V D : α × List Bool → Bool} {n : α → ℕ}
-    (hV : ComputableTidilyInPolyTime V (encPair enc encBits) encBool)
-    (hD : ComputableTidilyInPolyTime D (encPair enc encBits) encBool)
-    (hn : ComputableTidilyInPolyTime n enc encUnary) :
-    ComputableTidilyInPolyTime (prefixSearchRun V D n) enc encBits := by
-  have hstep : ComputableTidilyInPolyTime
+private theorem computableInPolyTime_prefixSearchRun {V D : α × List Bool → Bool} {n : α → ℕ}
+    (hV : ComputableInPolyTime V (encPair enc encBits) encBool)
+    (hD : ComputableInPolyTime D (encPair enc encBits) encBool)
+    (hn : ComputableInPolyTime n enc encUnary) :
+    ComputableInPolyTime (prefixSearchRun V D n) enc encBits := by
+  have hstep : ComputableInPolyTime
       (fun y : (α × List Bool) × Bool => prefixSearchStep V D y.1.1 y.1.2)
       (encPair (encPair enc encBits) encBool) encBits := by
-    have hu : ComputableTidilyInPolyTime (fun y : (α × List Bool) × Bool => y.1.2)
+    have hu : ComputableInPolyTime (fun y : (α × List Bool) × Bool => y.1.2)
         (encPair (encPair enc encBits) encBool) encBits := (fst _ _).snd'
-    have ha : ComputableTidilyInPolyTime (fun y : (α × List Bool) × Bool => y.1.1)
+    have ha : ComputableInPolyTime (fun y : (α × List Bool) × Bool => y.1.1)
         (encPair (encPair enc encBits) encBool) enc := (fst _ _).fst'
-    have happ (b : Bool) : ComputableTidilyInPolyTime
+    have happ (b : Bool) : ComputableInPolyTime
         (fun y : (α × List Bool) × Bool => y.1.2 ++ [b])
         (encPair (encPair enc encBits) encBool) encBits := bitsAppend hu (const [b])
     unfold prefixSearchStep
@@ -219,13 +219,13 @@ theorem FNP_subset_FPSearch_of_NP_subset_P
   obtain ⟨D, hD, hDR⟩ := mem_P.mp
     (h (searchDomain_mem_NP (prefixSearch_mem_FNP (mem_FNP.mpr ⟨⟨p, hp⟩, V, hV, hRV⟩))))
   let n : α → ℕ := fun a => p.eval (enc a).length
-  have hn : ComputableTidilyInPolyTime n enc encUnary := (unary_eval p).comp (encoding_length enc)
-  have hrun := computableTidilyInPolyTime_prefixSearchRun hV.tidy hD.tidy hn
+  have hn : ComputableInPolyTime n enc encUnary := (unary_eval p).comp (encoding_length enc)
+  have hrun := computableInPolyTime_prefixSearchRun hV hD hn
   refine mem_FPSearch.mpr
     ⟨mem_FNP.mpr ⟨⟨p, hp⟩, V, hV, hRV⟩, fun a => if V (a, prefixSearchRun V D n a) then
     some (prefixSearchRun V D n a) else none, ?_, fun a => ?_⟩
-  · exact .of_tidy
-      (cond (hV.tidy.comp (id'.prod hrun)) ((optionSome encBits).comp hrun) (const none))
+  · exact 
+      (cond (hV.comp (id'.prod hrun)) ((optionSome encBits).comp hrun) (const none))
   · have hcorrect := rel_prefixSearchRun hRV (fun a u => (hDR (a, u)).symm) hp (a := a)
     constructor
     · intro w hw
@@ -276,12 +276,12 @@ when `SAT ∈ P`. -/
 theorem searchRel_mem_FPSearch_iff : searchRel ∈ FPSearch encCNF ↔ SAT ∈ P encCNF := by
   refine ⟨fun h => searchDomain_searchRel ▸ searchDomain_mem_P h, fun h => ?_⟩
   obtain ⟨D, hD, hSAT⟩ := mem_P.mp h
-  have hsearch : ComputableTidilyInPolyTime (search D) encCNF encBits :=
-    (computableInPolyTime_search (D := fun _ => D) (.of_tidy (hD.tidy.comp (snd _ _)))
-      (.of_tidy id')).tidy
+  have hsearch : ComputableInPolyTime (search D) encCNF encBits :=
+    (computableInPolyTime_search (D := fun _ => D) ((hD.comp (snd _ _)))
+      (id'))
   refine mem_FPSearch.mpr
     ⟨searchRel_mem_FNP, fun φ => if D φ then some (search D φ) else none,
-      .of_tidy (cond hD.tidy ((optionSome encBits).comp hsearch) (const none)),
+      (cond hD ((optionSome encBits).comp hsearch) (const none)),
       fun φ => ⟨fun w hw => ?_, ?_⟩⟩
   · beta_reduce at hw
     split_ifs at hw with hDφ
