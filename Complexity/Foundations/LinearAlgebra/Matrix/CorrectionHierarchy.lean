@@ -65,9 +65,11 @@ the copies (factorial truncation, detectors) are not part of this file.
   of `C` is the expected corrected reward of `C - E + E C`.
 * `Matrix.IsStrictUpperTriangular.det_one_add`: `det (1 + E) = 1` for strictly upper triangular
   `E`.
-* `Matrix.correction_mulVec_one_le`: corrections keep matrices substochastic.
+* `Matrix.correction_mulVec_one_le`: nonnegative corrections do not increase row sums.
 * `Matrix.copySplit_mul_copyWeight`: a copy step intertwines with its projection.
 * `Matrix.mul_copyProjection`, `Matrix.rewardTransport_mulVec`: the reward transport identity.
+* `Matrix.rewardTransport_mulVec_nonneg`, `Matrix.rewardTransport_mulVec_le`: the stage rewards
+  lie between `0` and the projected solution.
 * `Matrix.sub_rewardTransport_mulVec_mem_Icc`, `Matrix.sub_rewardTransport_mulVec_le_card_mul`,
   `Matrix.sub_rewardTransport_mulVec_le_pow`: the transported reward is a lower bound with error
   controlled by the last transition matrix.
@@ -187,8 +189,10 @@ theorem mulVec_le_one {m n : Type*} [Fintype n] [Semiring R] [PartialOrder R] [I
     M *ᵥ v ≤ 1 := fun i =>
   le_trans (Finset.sum_le_sum fun j _ => mul_le_mul_of_nonneg_left (hv j) (hM i j)) (hM1 i)
 
-/-- **Corrections keep rows substochastic.** If `E ≥ 0` and the rows of `C` sum to at most one,
-then each row of `C - E + E C` sums to at most the corresponding row of `C`. -/
+/-- **Corrections do not increase row sums.** If `E ≥ 0` and the rows of `C` sum to at most one,
+then each row of `C - E + E C` sums to at most the corresponding row of `C`. This says nothing
+about the signs of the entries of `C - E + E C`; their nonnegativity depends on how `E` is
+chosen [OpenAI2026LogSpace, Lemma 4.4]. -/
 theorem correction_mulVec_one_le [Ring R] [PartialOrder R] [IsOrderedRing R]
     {C E : Matrix V V R} (hE : ∀ i j, 0 ≤ E i j) (hC : C *ᵥ 1 ≤ 1) :
     (C - E + E * C) *ᵥ 1 ≤ C *ᵥ 1 := by
@@ -254,8 +258,9 @@ theorem copySplit_nonneg [Semiring R] [PartialOrder R] [IsOrderedRing R] {r : ι
     0 ≤ copySplit r s D a b :=
   mul_nonneg (mul_nonneg (hr _ _) (hD _ _)) (hs _ _ _)
 
-/-- **Copies keep rows substochastic** when the weights are at most one and the proportions of
-each entry sum to at most one. -/
+/-- **Copies keep row sums at most one** when the weights lie in `[0, 1]`, `D` is nonnegative
+with row sums at most one, and the proportions of each entry sum to at most one. Together with
+`Matrix.copySplit_nonneg` this makes the copy step substochastic. -/
 theorem copySplit_mulVec_one_le [Fintype V] [Fintype ι] [Semiring R] [PartialOrder R]
     [IsOrderedRing R] {r : ι → V → R} {s : V → V → ι → R} {D : Matrix V V R}
     (hr0 : ∀ i x, 0 ≤ r i x) (hr1 : ∀ i x, r i x ≤ 1) (hs1 : ∀ x y, ∑ j, s x y j ≤ 1)
@@ -383,13 +388,20 @@ theorem rewardTransport_nonneg (hP : ∀ l i j, 0 ≤ P l i j) (hE : ∀ l i j, 
     exact mul_nonneg_entries (mul_nonneg_entries (hP l)
       (fun i j => add_nonneg (one_apply_nonneg i j) (hE l i j))) ih
 
+/-- The stage rewards are nonnegative when the projections, the corrections and the initial reward
+are [OpenAI2026LogSpace, Proposition 4.7]. -/
+theorem rewardTransport_mulVec_nonneg (hP : ∀ l i j, 0 ≤ P l i j) (hE : ∀ l i j, 0 ≤ E l i j)
+    {e : V 0 → R} (he : 0 ≤ e) (l : ℕ) : 0 ≤ rewardTransport P E l *ᵥ e :=
+  mulVec_nonneg (rewardTransport_nonneg hP hE l) he
+
 variable (hP : ∀ l i j, 0 ≤ P l i j) (hP1 : ∀ l, P l *ᵥ 1 ≤ 1)
   (hC : ∀ l i j, 0 ≤ C l i j) (hstep : ∀ l, C (l + 1) * P l = P l * (C l - E l + E l * C l))
   {p e : V 0 → R}
   (hp : (1 - C 0) *ᵥ p = e) (hp0 : 0 ≤ p) (hp1 : p ≤ 1)
 include hP hP1 hC hstep hp hp0 hp1
 
-/-- The stage rewards are bounded by the projected solution, hence by one. -/
+/-- The stage rewards are bounded by the projected solution, hence by one. For the lower bound
+see `Matrix.rewardTransport_mulVec_nonneg`. -/
 theorem rewardTransport_mulVec_le (l : ℕ) :
     rewardTransport P E l *ᵥ e ≤ copyProjection P l *ᵥ p ∧
       copyProjection P l *ᵥ p ≤ 1 := by

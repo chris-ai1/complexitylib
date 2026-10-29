@@ -55,7 +55,7 @@ example : ((1 - (C - E + E * C))⁻¹ *ᵥ (e + E *ᵥ e)) 0 = 1 / 4 := by
   simp [C, e, mulVec, dotProduct, Fin.sum_univ_three, one_apply]
   norm_num
 
--- Corrections keep the rows substochastic.
+-- A nonnegative correction does not increase the row sums.
 example : (C - E + E * C) *ᵥ 1 ≤ C *ᵥ 1 :=
   correction_mulVec_one_le (fun i j => by fin_cases i <;> fin_cases j <;> simp [E]) fun i => by
     fin_cases i <;> simp [C, mulVec, dotProduct, Fin.sum_univ_three] <;> norm_num
@@ -118,5 +118,15 @@ example : (rewardTransport (V := fun _ => Fin 3) Ps Es 1 *ᵥ e) 0 = 1 / 4 := by
   simp only [Cs, Nat.add_one_ne_zero, ↓reduceIte, Matrix.zero_apply, Finset.sum_const_zero,
     Set.mem_Icc] at h
   linarith [h.1, h.2]
+
+-- The transported rewards are nonnegative.
+example : 0 ≤ rewardTransport (V := fun _ => Fin 3) Ps Es 1 *ᵥ e :=
+  rewardTransport_mulVec_nonneg (V := fun _ => Fin 3)
+    (fun _ i j => by simp only [Ps, one_apply]; split_ifs <;> simp)
+    (fun l i j => by
+      unfold Es; split_ifs
+      · fin_cases i <;> fin_cases j <;> norm_num [C, mul_apply, Fin.sum_univ_three]
+      · simp)
+    (fun i => by fin_cases i <;> simp [e]) 1
 
 end ComplexityTests.CorrectionHierarchy
