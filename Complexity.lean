@@ -2279,6 +2279,7 @@ public import Complexity.Crypto.Protocols.Signature.RandomOracle
 public import Complexity.Foundations.Algebra.FiniteMagnitude
 public import Complexity.Foundations.Algebra.GeometricTail
 public import Complexity.Foundations.Analysis.BernoulliInequality
+public import Complexity.Foundations.Analysis.Fourier.ZModProd
 public import Complexity.Foundations.Analysis.HarmonicMean
 public import Complexity.Foundations.Analysis.InnerProductSpace.Basic
 public import Complexity.Foundations.Analysis.LpNorm
@@ -2373,6 +2374,7 @@ public import Complexity.Foundations.Combinatorics.Expander.Random
 public import Complexity.Foundations.Combinatorics.Expander.Reindex
 public import Complexity.Foundations.Combinatorics.Expander.Reingold
 public import Complexity.Foundations.Combinatorics.Expander.Replacement
+public import Complexity.Foundations.Combinatorics.Expander.ShearTranslation
 public import Complexity.Foundations.Combinatorics.Expander.SimpleGraph
 public import Complexity.Foundations.Combinatorics.Expander.SlotGraph
 public import Complexity.Foundations.Combinatorics.Expander.Spectrum
