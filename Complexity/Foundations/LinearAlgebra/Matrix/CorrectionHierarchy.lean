@@ -97,7 +97,7 @@ variable {V R : Type*}
 /-- A square matrix is *strictly upper triangular* when its entry at `(i, j)` vanishes unless
 `i < j`. For the time-layered transition matrices of a machine, ordered by time, this says that
 every transition moves strictly forward. -/
-def IsStrictUpperTriangular [LT V] [Zero R] (M : Matrix V V R) : Prop :=
+@[expose] def IsStrictUpperTriangular [LT V] [Zero R] (M : Matrix V V R) : Prop :=
   ∀ ⦃i j⦄, ¬ i < j → M i j = 0
 
 namespace IsStrictUpperTriangular
