@@ -17,6 +17,9 @@ public import Complexity.Computability.Machines.Turing.MultiTape.Internal.Resour
 
 The original three plain rules are moved unchanged from the degree-calculus module to keep
 ordinary clients independent of its legacy construction calculus.
+
+Charged `ComputableInO` bounds also give degree certificates: a lower workspace degree bounds
+encoded output at that lower degree, even when the time bound has a higher degree.
 -/
 
 @[expose] public section
