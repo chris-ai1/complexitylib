@@ -149,7 +149,7 @@ private theorem next_eq (u : List Bool) :
 
 /-- The transducer testing whether all bits are ones. -/
 @[simps q₀ step final]
-private def allT : Transducer Bool Bool where
+def allT : Transducer Bool Bool where
   q₀ := true
   step a b := (a && b, [])
   final a := [a]
@@ -157,7 +157,7 @@ private def allT : Transducer Bool Bool where
   length_final_le _ := by simp
 
 /-- The transducer `allT` tests whether all bits are ones. -/
-private theorem allT_run (a : Bool) (u : List Bool) : allT.run a u = [a && u.all id] := by
+theorem allT_run (a : Bool) (u : List Bool) : allT.run a u = [a && u.all id] := by
   induction u generalizing a with
   | nil => simp [allT_final]
   | cons b u ih => simp [allT_step, ih, Bool.and_assoc]
