@@ -9,6 +9,7 @@ module
 
 public import Complexity.Computability.Machines.Turing.MultiTape.Complexity.BigO
 public import Complexity.Computability.Machines.Turing.MultiTape.Complexity.LinearSpaceArith
+import Complexity.Computability.Machines.Turing.MultiTape.Internal.OCountedIteration
 
 /-!
 # Tidy computability within a space bound
