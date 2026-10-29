@@ -43,6 +43,18 @@ word of `W` ones: every accepting halted vertex steps to it. The recursion at de
 decides whether the sink is reachable from the start vertex, that is, whether the machine accepts
 (`Turing.MultiTapeNTM.LogSquareSavitch.reach_eq_true_iff`).
 
+The sublinear form of Savitch's theorem is the extension stated in the final paragraph of
+Section 8.4 of Sipser's third edition, just before Section 8.5 (p. 351): "We can extend Savitch's
+theorem to hold for sublinear space bounds down to f(n) ≥ log n." Sipser's Theorem 8.5 itself
+assumes `f(n) ≥ n`. In the extension, the machine has a read-only input tape, and the
+configurations of the machine on the input `w` record the state, the work tapes and the head
+positions but not `w`. Here these are the vertices of the compact configuration graph, which omit
+the input, and the query machine reads the one input bit an edge test needs. The source states
+the theorem for every `f(n) ≥ log n` and for languages decided by nondeterministic machines whose
+branches all halt; this file proves only the case `f(n) = c * (log₂ n + 1)`, but for machines that
+only recognize the problem (branches may run forever), on arbitrary instances under an encoding
+into `List Bool`.
+
 ## Main definitions
 
 * `Turing.MultiTapeNTM.LogSquareSavitch.wordEdge`: the edges of the graph on words, given the
@@ -63,7 +75,8 @@ decides whether the sink is reachable from the start vertex, that is, whether th
 
 * [W. J. Savitch, *Relationships between nondeterministic and deterministic tape
   complexities*][Savitch1970]
-* [M. Sipser, *Introduction to the Theory of Computation*, Theorem 8.5][Sipser2013]
+* [M. Sipser, *Introduction to the Theory of Computation*, 3rd edition, Section 8.4, final
+  paragraph (p. 351)][Sipser2013]
 -/
 
 @[expose] public section

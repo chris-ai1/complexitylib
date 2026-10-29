@@ -24,6 +24,12 @@ same bound holds for `Cslib.Complexity.RL` [Hoza, Section 4.3][Hoza2022].
 The space classes are `Cslib.Complexity.DSPACE enc fun n => Nat.log2 n ^ 2`, the problems decided
 within space `c₁ * (log₂ n) ^ 2 + c₂` on encoded instances of length `n`.
 
+The source statement for sublinear space is the extension in the final paragraph of Sipser's
+Section 8.4 (3rd edition, p. 351), "We can extend Savitch's theorem to hold for sublinear space
+bounds down to f(n) ≥ log n"; Sipser's Theorem 8.5 assumes `f(n) ≥ n`. The source is about
+deciders on strings; the statements here also cover nonhalting recognizers and arbitrary encoded
+instances.
+
 ## Main results
 
 * `Cslib.Complexity.mem_DSPACE_log2_sq_of_recognizesInSpace`: a logspace recognizer, whose
@@ -36,7 +42,8 @@ within space `c₁ * (log₂ n) ^ 2 + c₂` on encoded instances of length `n`.
 * [W. J. Savitch, *Relationships between nondeterministic and deterministic tape
   complexities*][Savitch1970]
 * [W. M. Hoza, *Recent Progress on Derandomizing Space-Bounded Computation*, Section 4.3][Hoza2022]
-* [M. Sipser, *Introduction to the Theory of Computation*, Theorem 8.5][Sipser2013]
+* [M. Sipser, *Introduction to the Theory of Computation*, 3rd edition, Section 8.4, final
+  paragraph (p. 351)][Sipser2013]
 -/
 
 @[expose] public section
