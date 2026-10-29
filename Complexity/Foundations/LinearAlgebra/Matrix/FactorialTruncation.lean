@@ -180,13 +180,6 @@ private theorem sum_rank_le (S : Finset V) (y : V) {g : ℕ → ℝ} (hg : ∀ j
   simp only [mem_filter] at hz
   exact Finset.mem_range.mpr (hlt hz.1 hz.2)
 
-/-- The hockey-stick identity `∑ j < n, (j choose k) = n choose (k + 1)`. -/
-private theorem sum_range_choose_eq (n k : ℕ) :
-    ∑ j ∈ range n, (j.choose k : ℝ) = (n.choose (k + 1) : ℝ) := by
-  induction n with
-  | zero => simp
-  | succ n ih => rw [sum_range_succ, ih, Nat.choose_succ_succ', Nat.cast_add, add_comm]
-
 variable (hC : C.IsStrictUpperTriangular) (hC0 : ∀ x y, 0 ≤ C x y) (hCf : ∀ x y, C x y ≤ f)
   (hC1 : C *ᵥ 1 ≤ 1) (hφ0 : ∀ y t, 0 ≤ φ y t) (hφθ : ∀ y t, φ y t ≤ max (t - θ * f) 0)
   (hφm : ∀ y, Monotone (φ y)) (hφL : ∀ y s t, s ≤ t → φ y t - φ y s ≤ L * (t - s))
@@ -388,7 +381,15 @@ private theorem fix_sub_iter_le_choose (hf : 0 ≤ f) (hθf : 0 ≤ θ * f) (hL 
           gcongr
           exact sum_rank_le S y (g := fun j => (j.choose k : ℝ)) fun j => by positivity
       _ = f * (1 + f) ^ #S * (L * f) ^ (k + 1) * (#(S.filter (· < y))).choose (k + 1) := by
-          rw [sum_range_choose_eq]
+          -- the hockey-stick identity `∑ j ∈ Icc k n, j.choose k = (n + 1).choose (k + 1)`
+          congr 1
+          rcases hn : #(S.filter (· < y)) with _ | n
+          · simp
+          · rw [← Nat.sum_Icc_choose, Nat.cast_sum]
+            refine (Finset.sum_subset (fun j hj => ?_) fun j hj hjn => ?_).symm
+            · simp only [mem_Icc, mem_range] at hj ⊢; omega
+            · simp only [mem_Icc, mem_range, not_and_or, not_le] at hj hjn
+              rw [Nat.choose_eq_zero_of_lt (by omega), Nat.cast_zero]
 
 end Row
 
