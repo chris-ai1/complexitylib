@@ -32,10 +32,10 @@ iterations every entry is within `f e^(1 / θ) (L / θ)^k / k!` of the fixed poi
 (`Matrix.cutoffCorrectionFix_sub_iter_le`).
 
 The proof counts chains. In a fixed row, every positive entry of the fixed point leaves a residual
-at least `θ f`, and the residuals of a row sum to at most one, so the row has at most `1 / (θ f)`
-positive entries. Unrolling the recursion `k` times along that row expresses the error as a sum
-over increasing chains of `k` of these entries, each weighted by at most `(L f)^k`; there are at
-most `binomial (1 / (θ f), k) ≤ (θ f)^(-k) / k!` of them.
+at least `θ f`, and the residuals of a row sum to at most one, so the number `m` of positive
+entries in the row satisfies `m θ f ≤ 1`. Unrolling the recursion `k` times along that row
+expresses the error as a sum over increasing chains of `k` of these entries, each weighted by at
+most `(L f)^k`; there are at most `m.choose k ≤ m^k / k! ≤ (θ f)^(-k) / k!` of them.
 
 For the finite correction `E = E k`, the corrected matrix `C - E + E C` is nonnegative
 (`Matrix.cutoffCorrection_residual_nonneg`), and in a column whose cutoff leaves at most `θ₂ f`
