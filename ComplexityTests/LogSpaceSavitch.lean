@@ -20,14 +20,14 @@ namespace ComplexityTests.LogSpaceSavitch
 
 open Cslib.Turing Turing Turing.MultiTapeTM Cslib.Complexity
 open Turing.MultiTapeNTM.ConfigurationGraph Turing.MultiTapeNTM.LogSquareSavitch
+open Cslib.BitString (lowBits)
 
 /-! ### Words of a fixed width -/
 
-example : bitsOfWidth 4 5 = [true, false, true, false] := by decide
-example : (5 + 2 ^ 4).bits.dropLast = bitsOfWidth 4 5 := by decide
-example : ofBits (bitsOfWidth 6 37) = 37 := by decide
-example : ofBits (List.replicate 5 true) = 31 := by decide
-example : (bitsOfWidth 3 0, bitsOfWidth 0 0) = ([false, false, false], []) := by decide
+example : lowBits 4 5 = [true, false, true, false] := by decide
+example : (5 + 2 ^ 4).bits.dropLast = lowBits 4 5 := by decide
+example : ofBits (lowBits 6 37) = 37 := by decide
+example : (lowBits 3 0, lowBits 0 0) = ([false, false, false], []) := by decide
 
 /-! ### A machine accepting every input -/
 
@@ -58,7 +58,7 @@ example (w : List Bool) :
     Cslib.Reachability.reach (inputEdge acceptMachine (radix (radixExponent Unit 0) w.length) w)
       (width 0 (radix (radixExponent Unit 0) w.length))
       (width 0 (radix (radixExponent Unit 0) w.length))
-      (bitsOfWidth (width 0 (radix (radixExponent Unit 0) w.length))
+      (lowBits (width 0 (radix (radixExponent Unit 0) w.length))
         (startID acceptMachine (radix (radixExponent Unit 0) w.length)))
       (List.replicate (width 0 (radix (radixExponent Unit 0) w.length)) true) = true :=
   (reach_eq_true_iff (MultiTapeNTM.runsInSpace_zero_tapes _ _ _)).mpr (accepts_acceptMachine w)

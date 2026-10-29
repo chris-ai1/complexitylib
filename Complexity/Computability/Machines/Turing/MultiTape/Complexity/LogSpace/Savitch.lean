@@ -19,6 +19,8 @@ import Complexity.Computability.Machines.Turing.MultiTape.Internal.DegreeOptionP
 import Complexity.Computability.Machines.Turing.MultiTape.Complexity.Degree.Bounds
 import Complexity.Computability.Machines.Turing.MultiTape.Complexity.Quantitative
 import Complexity.Foundations.Data.BitString.ShortWords
+import Complexity.Foundations.Data.BitString.Binary
+import Complexity.Foundations.Data.BitString.Counter
 import Mathlib.Data.Nat.Size
 import Mathlib.Tactic.Linarith
 
@@ -69,8 +71,15 @@ decides whether the sink is reachable from the start vertex, that is, whether th
 namespace Turing.MultiTapeNTM.LogSquareSavitch
 
 open MultiTapeTM ConfigurationGraph Cslib.Reachability Cslib.Reachability.Savitch
+open Cslib.BitString (lowBits length_lowBits lsbValue_lowBits lsbValue_eq_foldr_bit
+  lsbValue_replicate_true)
 
 /-! ### The graph on words -/
+
+/-- The value of the `W` low-order digits of `x < 2 ^ W` is `x`. -/
+private theorem ofBits_lowBits {W x : ℕ} (hx : x < 2 ^ W) :
+    ofBits (lowBits W x) = x :=
+  (lsbValue_eq_foldr_bit _).symm.trans (lsbValue_lowBits hx)
 
 variable {k : ℕ} {State : Type} [Fintype State] (ntm : MultiTapeNTM k Bool State)
 
@@ -109,8 +118,10 @@ theorem vertexBound_lt_two_pow_width (B : ℕ) : vertexBound (k := k) B < 2 ^ wi
 /-- No vertex is the sink. -/
 theorem vertexBound_le_ofBits_sink (B : ℕ) :
     vertexBound (k := k) B ≤ ofBits (List.replicate (width k B) true) := by
-  rw [ofBits_replicate_true]
+  have h := lsbValue_replicate_true (width k B)
+  rw [lsbValue_eq_foldr_bit] at h
   have := vertexBound_lt_two_pow_width k B
+  change _ ≤ (List.replicate _ true).foldr Nat.bit 0
   omega
 
 /-- **The sink is reachable exactly when an accepting halted vertex is.** Along the graph on words
@@ -118,18 +129,18 @@ of width `W = width k B`, from the start vertex to the word of `W` ones. -/
 theorem reflTransGen_sink_iff (hstart : startID ntm B < vertexBound (k := k) B) :
     Relation.ReflTransGen (fun a b => a.length = width k B ∧ b.length = width k B ∧
         inputEdge ntm B w a b = true)
-      (bitsOfWidth (width k B) (startID ntm B)) (List.replicate (width k B) true) ↔
+      (lowBits (width k B) (startID ntm B)) (List.replicate (width k B) true) ↔
       ∃ u, Relation.ReflTransGen (Edge ntm B w) (startID ntm B) u ∧
         bad (k := k) (State := State) B w.length u = true := by
   have hW := vertexBound_lt_two_pow_width k B
   have hsink := vertexBound_le_ofBits_sink (k := k) B
   set W := width k B
-  have hsrc : ofBits (bitsOfWidth W (startID ntm B)) = startID ntm B :=
-    ofBits_bitsOfWidth (hstart.trans hW)
+  have hsrc : ofBits (lowBits W (startID ntm B)) = startID ntm B :=
+    ofBits_lowBits (hstart.trans hW)
   constructor
   · intro h
     have key : ∀ x, Relation.ReflTransGen (fun a b => a.length = W ∧ b.length = W ∧
-          inputEdge ntm B w a b = true) (bitsOfWidth W (startID ntm B)) x →
+          inputEdge ntm B w a b = true) (lowBits W (startID ntm B)) x →
         (∃ u, Relation.ReflTransGen (Edge ntm B w) (startID ntm B) u ∧
           bad (k := k) (State := State) B w.length u = true) ∨
         (Relation.ReflTransGen (Edge ntm B w) (startID ntm B) (ofBits x) ∧
@@ -157,23 +168,23 @@ theorem reflTransGen_sink_iff (hstart : startID ntm B < vertexBound (k := k) B) 
   · rintro ⟨u, hu, hb⟩
     have key : ∀ x, Relation.ReflTransGen (Edge ntm B w) (startID ntm B) x →
         Relation.ReflTransGen (fun a b => a.length = W ∧ b.length = W ∧
-          inputEdge ntm B w a b = true) (bitsOfWidth W (startID ntm B)) (bitsOfWidth W x) ∧
+          inputEdge ntm B w a b = true) (lowBits W (startID ntm B)) (lowBits W x) ∧
         x < vertexBound (k := k) B := by
       intro x hx
       induction hx with
       | refl => exact ⟨.refl, hstart⟩
       | @tail a b _ hab ih =>
         have hlt := lt_vertexBound_of_edgeWithSymbol hab
-        refine ⟨ih.1.tail ⟨length_bitsOfWidth _ _, length_bitsOfWidth _ _, ?_⟩, hlt.2⟩
-        simp only [inputEdge, wordEdge, ofBits_bitsOfWidth (hlt.1.trans hW),
-          ofBits_bitsOfWidth (hlt.2.trans hW)]
+        refine ⟨ih.1.tail ⟨length_lowBits _ _, length_lowBits _ _, ?_⟩, hlt.2⟩
+        simp only [inputEdge, wordEdge, ofBits_lowBits (hlt.1.trans hW),
+          ofBits_lowBits (hlt.2.trans hW)]
         rw [show edgeWithSymbol ntm B w.length a b w[queryIndex (k := k) B a]? = true from hab,
           Bool.true_or]
     have hu' : u < vertexBound (k := k) B := by
       simp only [bad, Bool.and_eq_true] at hb
       exact lt_vertexBound_of_valid hb.1.1
-    refine (key u hu).1.tail ⟨length_bitsOfWidth _ _, List.length_replicate, ?_⟩
-    simp only [inputEdge, wordEdge, ofBits_bitsOfWidth (hu'.trans hW), hb, Bool.true_and,
+    refine (key u hu).1.tail ⟨length_lowBits _ _, List.length_replicate, ?_⟩
+    simp only [inputEdge, wordEdge, ofBits_lowBits (hu'.trans hW), hb, Bool.true_and,
       Bool.or_eq_true]
     exact .inr (by simp)
 
@@ -184,7 +195,7 @@ theorem reach_eq_true_iff {c : ℕ} (hs : ntm.RunsInSpace w (c * (Nat.log2 w.len
     reach (inputEdge ntm (radix (radixExponent State c) w.length) w)
         (width k (radix (radixExponent State c) w.length))
         (width k (radix (radixExponent State c) w.length))
-        (bitsOfWidth (width k (radix (radixExponent State c) w.length))
+        (lowBits (width k (radix (radixExponent State c) w.length))
           (startID ntm (radix (radixExponent State c) w.length)))
         (List.replicate (width k (radix (radixExponent State c) w.length)) true) = true ↔
       ntm.Accepts w := by
@@ -193,9 +204,9 @@ theorem reach_eq_true_iff {c : ℕ} (hs : ntm.RunsInSpace w (c * (Nat.log2 w.len
   have hstart : startID ntm B < vertexBound (k := k) B := by
     rw [← vertexID_init ntm B w]
     exact vertexID_lt (fits_of_runsInSpace c hs .refl)
-  have hsrc : (bitsOfWidth W (startID ntm B)).length = W := length_bitsOfWidth _ _
+  have hsrc : (lowBits W (startID ntm B)).length = W := length_lowBits _ _
   have hcard : {x | Relation.ReflTransGen (fun a b => a.length = W ∧ b.length = W ∧
-      inputEdge ntm B w a b = true) (bitsOfWidth W (startID ntm B)) x}.encard ≤ 2 ^ W + 1 := by
+      inputEdge ntm B w a b = true) (lowBits W (startID ntm B)) x}.encard ≤ 2 ^ W + 1 := by
     refine (Set.encard_le_encard fun x hx => ?_).trans
       ((Cslib.BitString.encard_setOf_length_eq _).le.trans le_self_add)
     induction hx with
@@ -361,7 +372,7 @@ variable {ntm} {D : ℕ} {w : List Bool}
 /-- The first round, once the start vertex is known to have a word. -/
 theorem initRound_snd (hstart : startID ntm (radix D w.length) < 2 ^ width k (radix D w.length)) :
     (initRound ntm D w.length).2 = ⟨[], .call (width k (radix D w.length))
-      (bitsOfWidth (width k (radix D w.length)) (startID ntm (radix D w.length)))
+      (lowBits (width k (radix D w.length)) (startID ntm (radix D w.length)))
       (List.replicate (width k (radix D w.length)) true)⟩ := by
   rw [initRound, dropLast_bits_add_two_pow hstart]
 
@@ -371,11 +382,11 @@ theorem exists_halted (hstart : startID ntm (radix D w.length) < 2 ^ width k (ra
       finish ((machine ntm D).run w t) =
         [reach (inputEdge ntm (radix D w.length) w) (width k (radix D w.length))
           (width k (radix D w.length))
-          (bitsOfWidth (width k (radix D w.length)) (startID ntm (radix D w.length)))
+          (lowBits (width k (radix D w.length)) (startID ntm (radix D w.length)))
           (List.replicate (width k (radix D w.length)) true)] := by
   obtain ⟨T, -, hT⟩ := exists_iterate_step_call (edge := inputEdge ntm (radix D w.length) w)
     (w := width k (radix D w.length)) (width k (radix D w.length))
-    (bitsOfWidth (width k (radix D w.length)) (startID ntm (radix D w.length)))
+    (lowBits (width k (radix D w.length)) (startID ntm (radix D w.length)))
     (List.replicate (width k (radix D w.length)) true) []
   obtain ⟨symbol, h⟩ := exists_run_add (ntm := ntm) (D := D) w T
   refine ⟨w.length + 1 + T, ?_⟩
@@ -392,7 +403,7 @@ theorem invariant_iterate_initRound
   rw [initRound_snd hstart]
   refine ⟨trivial, fun i u v h => ?_⟩
   obtain ⟨rfl, rfl, rfl⟩ := Reg.call.inj h
-  exact ⟨by simp, length_bitsOfWidth _ _, List.length_replicate⟩
+  exact ⟨by simp, length_lowBits _ _, List.length_replicate⟩
 
 /-- The binary length of the radix `(n + 2) ^ D`. -/
 theorem length_encNat_radix_le (D n : ℕ) :
@@ -491,32 +502,16 @@ theorem isSome_inSpace {β : Type} (e : β ↪ List Bool) :
       fun o => (encOption e o).length :=
   of_inO (ComputableInDegree.isSome e).inO_one
 
-/-- The length of a word in unary, as a transducer. -/
-def unaryT : Transducer Bool Unit where
-  q₀ := ()
-  step _ _ := ((), [true])
-  final _ := []
-  length_step_le _ _ := by simp
-  length_final_le _ := by simp
-
-/-- `unaryT` emits the length of its input in unary. -/
-theorem unaryT_run (l : List Bool) : unaryT.run () l = List.replicate l.length true := by
-  induction l with
-  | nil => simp [unaryT]
-  | cons a l ih => rw [Transducer.run_cons, ih]; simp [unaryT, List.replicate_succ]
+/-- The binary length of a number, in unary, in linear space. -/
+theorem size_inSpace : ComputableInSpace Nat.size encNat encUnary fun x => (encNat x).length :=
+  ((of_inO ComputableInO.lengthUnary).of_encIn_eq Nat.bits fun _ => rfl).of_enc_eq fun x => by
+    rw [Nat.size_eq_bits_len]
 
 /-- The value of a word, in linear space. -/
 theorem ofBits_inSpace : ComputableInSpace ofBits encBits encNat fun l => (encBits l).length :=
   of_inO ComputableInO.bitsToNat
 
 variable {α : Type} {enc : α ↪ List Bool} {S : α → ℕ}
-
-/-- `Option.some`, within a budget. -/
-theorem budget_some {β : Type} {e : β ↪ List Bool} {f : α → β}
-    (hf : ComputableInSpace f enc e S) (hin : (fun a => (enc a).length) ≼ S) :
-    ComputableInSpace (fun a => some (f a)) enc (encOption e) S :=
-  ((budget_const (encB := encBool) true hin).append hf fun _ => rfl).weaken
-    (.add (.refl _) (.refl _))
 
 /-- The fields of a state of the recursion, as pairs. -/
 theorem stateFields_inSpace :
@@ -640,9 +635,7 @@ theorem initRound_inSpace (D : ℕ) : ComputableInSpace (initRound ntm D) encNat
   have hB : ComputableInSpace (fun n => radix D n) encNat encNat fun n => (encNat n).length :=
     (budget_natPow (budget_natAdd hn (budget_const 2 hin)) hin D).of_enc_eq fun _ => rfl
   have hN := vertexBound_budget (k := k) hB hin
-  have hW₀ := budget_comp_linear (transducer_inSpace (encIn := encNat) (encOut := encUnary)
-    (f := Nat.size) unaryT fun x => by
-      rw [unaryT_run, encUnary_apply, encNat_apply, Nat.size_eq_bits_len]) hN
+  have hW₀ := budget_comp_linear size_inSpace hN
   have hW : ComputableInSpace (fun n => width k (radix D n)) encNat encUnary
       fun n => (encNat n).length := hW₀.of_enc_eq fun _ => rfl
   have hstart := startID_budget ntm hB hin
@@ -658,7 +651,9 @@ theorem initRound_inSpace (D : ℕ) : ComputableInSpace (initRound ntm D) encNat
   have hsrc := budget_comp_linear (of_inO ComputableInDegree.bitsDropLast.inO_one) hbits
   have hsink : ComputableInSpace (fun n => List.replicate (width k (radix D n)) true) encNat
       encBits fun n => (encNat n).length := hW.of_enc_eq fun _ => rfl
-  have hcall := budget_some (e := encCall) (budget_prod hW (budget_prod hsrc hsink)) hin
+  have hcall := budget_comp_linear
+    (of_inO (ComputableInDegree.optionSome (enc₁ := encCall) (enc := encOption encCall)).inO_one)
+    (budget_prod hW (budget_prod hsrc hsink))
   have hstate : ComputableInSpace (fun n => (initRound ntm D n).2) encNat encState
       fun n => (encNat n).length :=
     (budget_prod (budget_const (encB := encList encFrame) [] hin)
