@@ -39,10 +39,11 @@ The reachable views form such a set (`Turing.MultiTapePTM.exists_finset_reachabl
 under a logarithmic one. So a `BPL` language is decided by the entry at the initial view of
 `(1 - S / 2)⁻¹ *ᵥ e` for a polynomial-size matrix `S`
 (`Cslib.Complexity.exists_configMatrix_of_mem_BPL`). This is the Markov chain of a probabilistic
-machine on its configurations [Gill][Gill1977], whose powers and inverse Borodin, Cook and
-Pippenger compute in parallel to place probabilistic space `s` in `DSPACE(s²)`
-[Borodin, Cook and Pippenger][BorodinCookPippenger1983]; for `BPL` this gives
-`BPL ⊆ DSPACE(log² n)` and `BPL ⊆ P` [Hoza, Section 4.3][Hoza2022]. Those algorithms are not
+machine on its configurations [Gill][Gill1977]. Borodin, Cook and Pippenger compute its powers
+and inverse in parallel [Borodin, Cook and Pippenger][BorodinCookPippenger1983], which gives
+`BPSPACE(S) ⊆ DSPACE(S²)` [Hoza, Section 4.3][Hoza2022]; the inverse of `1 - W` as the sum
+`W⁰ + W¹ + …` of transition-matrix powers is the picture of [Hoza, Section 3.2][Hoza2022].
+Exact evaluation of the polynomial-size matrix also gives `BPL ⊆ P`. None of these algorithms is
 formalized here.
 
 The matrices are indexed by an arbitrary closed set of views rather than a set of
@@ -342,15 +343,21 @@ variable {α : Type} {enc : α ↪ List Bool} {A : Set α}
 
 open scoped Classical in
 /-- **`BPL` through polynomial-size configuration matrices**: a `BPL` machine has, on every
-encoded instance of length `n`, a closed set `V` of at most `2 * (2 * (n + 1)) ^ d` views,
-containing the initial view, such that the entry at the initial view of `(1 - S / 2)⁻¹ *ᵥ e` is
-at least `2/3` on members and at most `1/3` on non-members, with `S` the live configuration
-matrix on `V` and `e` the indicator of the accepting halted views. -/
+encoded instance of length `n`, a set `V` of at most `2 * (2 * (n + 1)) ^ d` views, all reachable
+from the initial view and closed under coin steps, such that every branch halts within
+`T = 2 * (2 * (n + 1)) ^ d` steps, the live configuration matrix `S` on `V` satisfies
+`S ^ (T + 1) = 0`, and the entry at the initial view of `(1 - S / 2)⁻¹ *ᵥ e` is at least `2/3` on
+members and at most `1/3` on non-members, with `e` the indicator of the accepting halted
+views. -/
 theorem exists_configMatrix_of_mem_BPL (h : A ∈ BPL enc) :
     ∃ (k : ℕ) (State : Type) (_ : Finite State) (M : MultiTapePTM k Bool State) (d : ℕ),
       ∀ a, ∃ (V : Finset (FiniteCfg k Bool State)) (hinit : M.toNTM.initView (enc a) ∈ V),
         V.card ≤ 2 * (2 * ((enc a).length + 1)) ^ d ∧
         (∀ finite ∈ V, ∀ bit, M.viewCoinStep finite bit ∈ V) ∧
+        (∀ finite ∈ V,
+          Relation.ReflTransGen M.toNTM.ViewStep (M.toNTM.initView (enc a)) finite) ∧
+        M.toNTM.RunsInTime (enc a) (2 * (2 * ((enc a).length + 1)) ^ d) ∧
+        M.liveConfigMatrix ℚ V ^ (2 * (2 * ((enc a).length + 1)) ^ d + 1) = 0 ∧
         (a ∈ A → 2 / 3 ≤ ((1 - (2 : ℚ)⁻¹ • M.liveConfigMatrix ℚ V)⁻¹ *ᵥ
           FiniteCfg.acceptVec ℚ V) ⟨_, hinit⟩) ∧
         (a ∉ A → ((1 - (2 : ℚ)⁻¹ • M.liveConfigMatrix ℚ V)⁻¹ *ᵥ
@@ -361,10 +368,14 @@ theorem exists_configMatrix_of_mem_BPL (h : A ∈ BPL enc) :
   obtain ⟨hs, t, ht, hmem, hnot⟩ := hM a
   obtain ⟨V, hreach, hV, hcard⟩ := M.exists_finset_reachable hs
   have hinit : M.toNTM.initView (enc a) ∈ V := (hreach _).mpr .refl
-  refine ⟨V, hinit, hcard.trans (MultiTapeNTM.two_pow_coreLengthBound_log_le k State c _), hV,
-    fun ha => ?_, fun ha => ?_⟩
-  all_goals
-    rw [← MultiTapePTM.acceptCoins_div_eq_inv_mulVec ℚ ht hV (fun finite hf => (hreach _).mp hf)]
+  have hpoly := MultiTapeNTM.two_pow_coreLengthBound_log_le k State c (enc a).length
+  have hreach' : ∀ finite ∈ V,
+      Relation.ReflTransGen M.toNTM.ViewStep (M.toNTM.initView (enc a)) finite :=
+    fun finite hf => (hreach _).mp hf
+  have hT := (MultiTapeNTM.runsInTime_of_runsInSpace hs ht).mono hpoly
+  refine ⟨V, hinit, hcard.trans hpoly, hV, hreach', hT,
+    MultiTapePTM.liveConfigMatrix_pow_eq_zero ℚ hT hV hreach', fun ha => ?_, fun ha => ?_⟩
+  all_goals rw [← MultiTapePTM.acceptCoins_div_eq_inv_mulVec ℚ ht hV hreach']
   · have h : ((2 * 2 ^ t : ℕ) : ℚ) ≤ ((3 * M.acceptCoins (enc a) t : ℕ) : ℚ) :=
       Nat.cast_le.mpr (hmem ha)
     push_cast at h
