@@ -17,15 +17,12 @@ import Mathlib.Tactic.Ring
 
 The original borrow and leading-zero normalization folds compute the predecessor. Its time is
 quadratic and its charged workspace linear in the binary input length. The successor's
-certificate here is a weakening of the streaming transducer `computableInTimeAndSpace_succ`; the
-carry rounds remain as the shared step of binary addition. The zero test uses the existing
-empty-word machine. All round certificates are plain; normalization occurs only when the internal
-machine combinators construct the fold.
+certificate here is a weakening of the streaming transducer `computableInTimeAndSpace_succ`. The
+zero test uses the existing empty-word machine. All round certificates are plain; normalization
+occurs only when the internal machine combinators construct the fold.
 
 ## Main results
 
-* `ComputableInO.succStep`, `ComputableInO.succFinish`: shared linear carry-round certificates
-  for binary addition.
 * `ComputableInO.natSucc`, `ComputableInO.natPred`: quadratic-time, linear-space binary counters.
 * `ComputableInO.natIsZero`: linear zero testing.
 -/
@@ -67,14 +64,6 @@ private theorem decrStep_inO :
       (fun p => (encPair (encPair encBool encBits) encBool p).length) :=
   digitStep (op := fun c b => c && !b) (· ^^ ·)
 
-/-- One consuming carry round has linear time and charged workspace. -/
-theorem succStep :
-    ComputableInO (fun p : (Bool × List Bool) × Bool => NatSucc.succStep p.1 p.2)
-      (encPair (encPair encBool encBits) encBool) (encPair encBool encBits)
-      (fun p => (encPair (encPair encBool encBits) encBool p).length)
-      (fun p => (encPair (encPair encBool encBits) encBool p).length) :=
-  digitStep (op := (· && ·)) (· ^^ ·)
-
 private theorem normStep_inO :
     ComputableInO (fun p : (Option Bool × List Bool) × Bool => normStep p.1 p.2)
       (encPair (encPair (encOption encBool) encBits) encBool)
@@ -107,21 +96,6 @@ private theorem normFinish_inO :
   simpa only [Function.comp_apply, Bool.decide_iff] using
     (htest.ite happ hds).mono (T' := fun p => (encPair (encOption encBool) encBits p).length)
       (S' := fun p => (encPair (encOption encBool) encBits p).length) 3
-      (fun _ => by split_ifs <;> omega) (fun _ => by split_ifs <;> omega)
-
-/-- Appending the final carry has linear time and charged workspace. -/
-theorem succFinish :
-    ComputableInO NatSucc.succFinish (encPair encBool encBits) encBits
-      (fun p => (encPair encBool encBits p).length)
-      (fun p => (encPair encBool encBits p).length) := by
-  have hc := fst encBool encBits
-  have hds := snd encBool encBits
-  have happ := hds.append (of_linear (.const (encMid := encBool) true)) (encOut := encBits)
-    (g := fun p : Bool × List Bool => p.2 ++ [true]) fun _ => rfl
-  unfold NatSucc.succFinish
-  exact
-    (hc.ite happ hds).mono (T' := fun p => (encPair encBool encBits p).length)
-      (S' := fun p => (encPair encBool encBits p).length) 3
       (fun _ => by split_ifs <;> omega) (fun _ => by split_ifs <;> omega)
 
 /-- A fold over binary words retains quadratic time and linear charged workspace when its
