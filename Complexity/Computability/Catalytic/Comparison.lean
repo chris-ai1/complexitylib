@@ -40,6 +40,17 @@ and `-2c ⟨x, y⟩` remains. `eqTest` runs this with `c = 1`, observes whether 
 changed, and runs it with `c = -1`, which restores the registers and the accumulator
 (`eqTest_snd`).
 
+This four-visit test follows the construction in OpenAI's Lean formalization accompanying
+[OpenAI2026LogSpace], the file
+[`CatalyticComparison.lean`](https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/lean/OAI/Computability/Logspace/CatalyticComparison.lean)
+at revision `7ef5c0cc`: its `fair` (composed of `first`, `second`, `pointR` and `pointZ`)
+is `addSqDist` with the same split of terms across the visits, and its lemmas `pupils`, `back`,
+`test_eye`, `paw` and `small` correspond to `addSqDist_eq`, `addSqDist_neg_addSqDist`
+(with `eqTest_snd`), `eqTest_fst_iff_sqDist` (with `eqTest_eq`) and `natCast_sqDist_eq_zero_iff`.
+The construction is re-proved independently here: registers are vectors over a commutative ring
+with the dot product, where that file uses digit-encoded natural numbers, and the names,
+statements and proofs are our own.
+
 The flag reports whether `⟨x - y, x - y⟩ = 0` (`eqTest_fst_iff_sqDist`), so it is
 `decide (x = y)` when the squared distance detects equality (`eqTest_eq`). Over `ℤ` it always does
 (`eqTest_eq_int`). Over `ZMod m` it can fail by wraparound: in `ZMod 5`, `1² + 2² = 0`. It holds
@@ -87,13 +98,13 @@ otherwise (`keyTest_eq`). Over `ZMod 2` with `c = 1` this is the exclusive-or te
 ## References
 
 * [M. Ben-Or and R. Cleve, *Computing algebraic formulas using a constant number of
-  registers*][BenOrCleve1992]: registers with arbitrary initial contents whose contributions
-  cancel.
+  registers*][BenOrCleve1992]: background, registers with arbitrary initial contents whose
+  contributions cancel.
 * [H. Buhrman, R. Cleve, M. Koucký, B. Loff and F. Speelman, *Computing with a full memory:
-  catalytic space*][BuhrmanCleveKouckyLoffSpeelman2014]: transparent programs.
+  catalytic space*][BuhrmanCleveKouckyLoffSpeelman2014]: background, transparent programs.
 * [OpenAI, *Exact Derandomization of Logarithmic Space: L = RL = BPL*][OpenAI2026LogSpace],
-  Lemma 9.9 (the key test over `ZMod 2`; preprint, not peer reviewed). The sum-of-squares test
-  is a variant of its catalytic comparison.
+  Lemma 9.9 (the key test over `ZMod 2`; preprint, not peer reviewed), and the accompanying
+  Lean file `CatalyticComparison.lean` (revision `7ef5c0cc`) for the sum-of-squares test.
 -/
 
 @[expose] public section
