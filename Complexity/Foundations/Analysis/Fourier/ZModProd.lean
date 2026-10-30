@@ -9,6 +9,7 @@ module
 
 public import Complexity.Init
 public import Mathlib.Analysis.SpecialFunctions.Complex.CircleAddChar
+import Complexity.Foundations.Algebra.Shear
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.NumberTheory.LegendreSymbol.AddCharacter
 
@@ -114,35 +115,21 @@ theorem dftProd_comp_add (f : ZMod N × ZMod N → ℂ) (t ξ : ZMod N × ZMod N
   congr 2
   ring
 
-/-- The shear `(x, y) ↦ (x + k * y, y)` of `ZMod N × ZMod N`, as a permutation. -/
-private def shearFstEquiv (k : ZMod N) : Equiv.Perm (ZMod N × ZMod N) where
-  toFun v := (v.1 + k * v.2, v.2)
-  invFun v := (v.1 - k * v.2, v.2)
-  left_inv v := by simp
-  right_inv v := by simp
-
 /-- **The shear `(x, y) ↦ (x + k * y, y)`** acts on frequencies by `(a, b) ↦ (a, b - k * a)`. -/
 theorem dftProd_comp_shearFst (f : ZMod N × ZMod N → ℂ) (k : ZMod N) (ξ : ZMod N × ZMod N) :
     dftProd (fun v ↦ f (v.1 + k * v.2, v.2)) ξ = dftProd f (ξ.1, ξ.2 - k * ξ.1) := by
   rw [dftProd, dftProd]
-  refine Fintype.sum_equiv (shearFstEquiv k) _ _ fun v ↦ ?_
-  simp only [shearFstEquiv, Equiv.coe_fn_mk]
+  refine Fintype.sum_equiv (Cslib.shearFst k) _ _ fun v ↦ ?_
+  rw [Cslib.shearFst_apply]
   congr 2
   ring
-
-/-- The shear `(x, y) ↦ (x, y + k * x)` of `ZMod N × ZMod N`, as a permutation. -/
-private def shearSndEquiv (k : ZMod N) : Equiv.Perm (ZMod N × ZMod N) where
-  toFun v := (v.1, v.2 + k * v.1)
-  invFun v := (v.1, v.2 - k * v.1)
-  left_inv v := by simp
-  right_inv v := by simp
 
 /-- **The shear `(x, y) ↦ (x, y + k * x)`** acts on frequencies by `(a, b) ↦ (a - k * b, b)`. -/
 theorem dftProd_comp_shearSnd (f : ZMod N × ZMod N → ℂ) (k : ZMod N) (ξ : ZMod N × ZMod N) :
     dftProd (fun v ↦ f (v.1, v.2 + k * v.1)) ξ = dftProd f (ξ.1 - k * ξ.2, ξ.2) := by
   rw [dftProd, dftProd]
-  refine Fintype.sum_equiv (shearSndEquiv k) _ _ fun v ↦ ?_
-  simp only [shearSndEquiv, Equiv.coe_fn_mk]
+  refine Fintype.sum_equiv (Cslib.shearSnd k) _ _ fun v ↦ ?_
+  rw [Cslib.shearSnd_apply]
   congr 2
   ring
 

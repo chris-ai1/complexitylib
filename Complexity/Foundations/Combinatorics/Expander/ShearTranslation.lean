@@ -9,6 +9,7 @@ module
 
 public import Complexity.Foundations.Combinatorics.Expander.Lazy
 public import Complexity.Foundations.Combinatorics.Expander.Perm
+public import Complexity.Foundations.Algebra.Shear
 public import Mathlib.Data.ZMod.Basic
 import Complexity.Foundations.Analysis.Fourier.ZModProd
 import Mathlib.Algebra.Order.Chebyshev
@@ -40,14 +41,16 @@ the frequencies `(a, b)` with `|b| < |a|` to two disjoint sets of frequencies wi
 and those with `0 < |b|`, `|a| ≤ |b|` to two disjoint sets with `|b| < |a|`. Each class therefore
 carries at least twice the mass of the other, up to small errors, so both are nearly empty. This
 is a finite, quantitative argument in the spirit of the proof of the relative property (T) of
-`SL₂(ℤ) ⋉ ℤ²` [Burger][Burger1991].
+`SL₂(ℤ) ⋉ ℤ²` [Burger][Burger1991]. The idea of proving a uniform gap for a shear-translation
+graph on `ZMod n × ZMod n` by an elementary Fourier ping-pong argument, rather than by property
+(T), is taken from the OpenAI preprint on derandomizing logarithmic space [OpenAI2026LogSpace].
+The formulation here is our own: the frequency box, the shears by `±4`, the disjoint-image mass
+transfer and the constants differ from the preprint's.
 
 The explicit constants are far from optimal; the point is that they do not depend on `n`.
 
 ## Main definitions
 
-* `Cslib.shearFst`, `Cslib.shearSnd`: the shears `(x, y) ↦ (x + k * y, y)` and
-  `(x, y) ↦ (x, y + k * x)` of `R × R`.
 * `Cslib.RotationMap.shearTranslationMove`: the four moves of the graph.
 * `Cslib.RotationMap.shearTranslation`: the `8`-regular shear-translation multigraph on
   `ZMod n × ZMod n`.
@@ -63,13 +66,14 @@ The explicit constants are far from optimal; the point is that they do not depen
 
 ## References
 
-* [G. A. Margulis, *Explicit constructions of expanders*][Margulis1973]
+* [G. A. Margulis, *Explicit constructions of concentrators*][Margulis1973]
 * [O. Gabber, Z. Galil, *Explicit constructions of linear-sized
   superconcentrators*][GabberGalil1981]
 * [S. Jimbo, A. Maruoka, *Expanders obtained from affine transformations*][JimboMaruoka1987]
 * [M. Burger, *Kazhdan constants for SL(3, ℤ)*][Burger1991]
 * [S. Hoory, N. Linial, A. Wigderson, *Expander graphs and their
   applications*][HooryLinialWigderson2006]
+* [OpenAI, *Exact derandomization of logarithmic space: L = RL = BPL*][OpenAI2026LogSpace]
 -/
 
 @[expose] public section
@@ -77,66 +81,6 @@ The explicit constants are far from optimal; the point is that they do not depen
 namespace Cslib
 
 open Finset
-
-section Shear
-
-variable {R : Type*} [CommRing R]
-
-/-- The shear `(x, y) ↦ (x + k * y, y)` of `R × R`, as a permutation. -/
-def shearFst (k : R) : Equiv.Perm (R × R) where
-  toFun v := (v.1 + k * v.2, v.2)
-  invFun v := (v.1 - k * v.2, v.2)
-  left_inv v := by simp
-  right_inv v := by simp
-
-/-- The shear `(x, y) ↦ (x, y + k * x)` of `R × R`, as a permutation. -/
-def shearSnd (k : R) : Equiv.Perm (R × R) where
-  toFun v := (v.1, v.2 + k * v.1)
-  invFun v := (v.1, v.2 - k * v.1)
-  left_inv v := by simp
-  right_inv v := by simp
-
-@[simp]
-theorem shearFst_apply (k : R) (v : R × R) : shearFst k v = (v.1 + k * v.2, v.2) :=
-  rfl
-
-@[simp]
-theorem shearSnd_apply (k : R) (v : R × R) : shearSnd k v = (v.1, v.2 + k * v.1) :=
-  rfl
-
-/-- The inverse of a shear is the opposite shear. -/
-theorem shearFst_symm (k : R) : (shearFst k).symm = shearFst (-k) := by
-  ext v <;> simp [shearFst, sub_eq_add_neg]
-
-/-- The inverse of a shear is the opposite shear. -/
-theorem shearSnd_symm (k : R) : (shearSnd k).symm = shearSnd (-k) := by
-  ext v <;> simp [shearSnd, sub_eq_add_neg]
-
-/-- Iterating a shear multiplies its parameter. -/
-theorem shearFst_pow (k : R) (m : ℕ) : shearFst k ^ m = shearFst (m * k) := by
-  induction m with
-  | zero => ext v <;> simp
-  | succ m ih =>
-    rw [pow_succ', ih]
-    ext v
-    · simp only [Equiv.Perm.mul_apply, shearFst_apply]
-      push_cast
-      ring
-    · rfl
-
-/-- Iterating a shear multiplies its parameter. -/
-theorem shearSnd_pow (k : R) (m : ℕ) : shearSnd k ^ m = shearSnd (m * k) := by
-  induction m with
-  | zero => ext v <;> simp
-  | succ m ih =>
-    rw [pow_succ', ih]
-    ext v
-    · rfl
-    · simp only [Equiv.Perm.mul_apply, shearSnd_apply]
-      push_cast
-      ring
-
-end Shear
 
 namespace RotationMap
 
