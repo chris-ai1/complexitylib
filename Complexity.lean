@@ -2637,6 +2637,7 @@ public import Complexity.Foundations.LinearAlgebra.Matrix.RectPermanent
 public import Complexity.Foundations.LinearAlgebra.Matrix.SchurComplement
 public import Complexity.Foundations.LinearAlgebra.Matrix.SubmatrixRobust
 public import Complexity.Foundations.LinearAlgebra.Matrix.Toeplitz
+public import Complexity.Foundations.LinearAlgebra.Matrix.Transvection
 public import Complexity.Foundations.LinearAlgebra.PivotSpace
 public import Complexity.Foundations.LinearAlgebra.Rank
 public import Complexity.Foundations.LinearAlgebra.ReplacementDesign
@@ -2924,6 +2925,7 @@ public import Complexity.Probability.PairwiseIndependentHash.FrameChannel
 public import Complexity.Probability.PairwiseIndependentHash.Retention
 public import Complexity.Probability.PairwiseIndependentHash.RetentionChannel
 public import Complexity.Probability.PairwiseIndependentHash.Shift
+public import Complexity.Probability.PairwiseIndependentHash.SliceGap
 public import Complexity.Probability.PairwiseIndependentHash.Toeplitz
 public import Complexity.Probability.PairwiseIndependentHash.Universal
 public import Complexity.Probability.Pinsker
