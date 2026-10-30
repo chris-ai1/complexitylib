@@ -99,7 +99,7 @@ theorem sum_input_le (hC1 : C *ᵥ 1 ≤ 1) :
   have hrow : ∀ z, ∑ y, C z y ≤ 1 := fun z => by simpa [mulVec, dotProduct] using hC1 z
   have hinput : ∀ i x, ∑ y, F i x y ≤ i → ∑ y, (C + F i * C) x y ≤ i + 1 := fun i x hi => by
     calc ∑ y, (C + F i * C) x y = ∑ y, C x y + ∑ z, F i x z * ∑ y, C z y := by
-          simp only [add_apply, mul_apply, sum_add_distrib, mul_sum]
+          simp only [Matrix.add_apply, Matrix.mul_apply, sum_add_distrib, mul_sum]
           rw [sum_comm]
       _ ≤ 1 + ∑ z, F i x z * 1 := add_le_add (hrow x) (sum_le_sum fun z _ =>
           mul_le_mul_of_nonneg_left (hrow z) (hF.nonneg i x z))
@@ -148,7 +148,7 @@ theorem input_mem_and_mem (hA : ∀ x y, C x y ≠ 0 → x ∈ A ∧ y ∈ A) :
     by_contra hxy
     apply h
     have hCxy : C x y = 0 := by by_contra h'; exact hxy (hA x y h')
-    simp only [add_apply, mul_apply, hCxy, zero_add]
+    simp only [Matrix.add_apply, Matrix.mul_apply, hCxy, zero_add]
     refine sum_eq_zero fun z _ => ?_
     by_cases hE : F i x z = 0
     · rw [hE, zero_mul]

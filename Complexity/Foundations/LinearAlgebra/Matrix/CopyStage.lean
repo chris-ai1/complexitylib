@@ -124,7 +124,7 @@ theorem cutoffCorrection_residual_le_mul (hCf : ∀ x y, C x y ≤ f) (hf : 0 �
   have h := (isCorrectionSeq_cutoffCorrectionIter hC0 hφ0 hφθ hθf).input_le_mul hCf hf hC1 k
     x y
   have h0 := cutoffCorrectionIter_nonneg (C := C) hφ0 k x y
-  simp only [add_apply, sub_apply] at h ⊢
+  simp only [Matrix.add_apply, Matrix.sub_apply] at h ⊢
   linarith
 
 include hC0 hφ0 hφθ hθf in
@@ -174,7 +174,7 @@ theorem cutoffCorrection_residual_dominates (hCf : ∀ x y, C x y ≤ f) (hf : 0
     mul_le_of_le_one_left (by linarith) (by linarith)
   have hadef : a = C x y + (F * C) x y := rfl
   rw [hcoef]
-  simp only [add_apply, sub_apply]
+  simp only [Matrix.add_apply, Matrix.sub_apply]
   nlinarith
 
 variable {A : Finset V}
@@ -191,7 +191,7 @@ theorem cutoffCorrectionIter_mem (hA : ∀ x y, C x y ≠ 0 → x ∈ A ∧ y �
     have hCxy : C x y = 0 := by
       by_contra h'; exact hxy (hA x y h')
     have hin : (C + cutoffCorrectionIter φ C k * C) x y = 0 := by
-      simp only [add_apply, mul_apply, hCxy, zero_add]
+      simp only [Matrix.add_apply, Matrix.mul_apply, hCxy, zero_add]
       refine Finset.sum_eq_zero fun z _ => ?_
       by_cases hE : cutoffCorrectionIter φ C k x z = 0
       · rw [hE, zero_mul]
@@ -214,7 +214,7 @@ theorem cutoffCorrection_residual_mem (hA : ∀ x y, C x y ≠ 0 → x ∈ A ∧
     cutoffCorrectionIter_mem hφ0 hφθ hθf hA k
   have hCxy : C x y = 0 := by by_contra h'; exact hxy (hA x y h')
   have hExy : cutoffCorrectionIter φ C k x y = 0 := by by_contra h'; exact hxy (hE x y h')
-  simp only [add_apply, sub_apply, mul_apply, hCxy, hExy, sub_zero, zero_add]
+  simp only [Matrix.add_apply, Matrix.sub_apply, Matrix.mul_apply, hCxy, hExy, sub_zero, zero_add]
   refine Finset.sum_eq_zero fun z _ => ?_
   by_cases hEz : cutoffCorrectionIter φ C k x z = 0
   · rw [hEz, zero_mul]
