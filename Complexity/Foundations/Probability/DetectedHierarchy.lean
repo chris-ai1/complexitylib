@@ -13,8 +13,10 @@ public import Complexity.Foundations.Probability.HierarchyParams
 # The correction-and-copy hierarchy
 
 This file iterates the stages of `Complexity.Foundations.Probability.HierarchyParams` and proves
-the stage bound of the OpenAI preprint (2026-09-23), Proposition 4.7 [OpenAI2026LogSpace], from
-the construction itself.
+the finite-matrix stage bound of the OpenAI preprint (2026-09-23), Proposition 4.7
+[OpenAI2026LogSpace], from the construction using the reduced algebraic-stage parameters and
+the retention-channel interface. The preprint's full threshold ladder and later-estimation
+root/complement regularity for `Q` and all step cutoffs remain separate requirements.
 
 Start with a strictly upper triangular, nonnegative, substochastic matrix `S` on a finite linearly
 ordered set `V 0`. Stage `l + 1` lives on a finite linearly ordered set `V (l + 1)` identified
