@@ -112,15 +112,15 @@ theorem isUpperTriangular [Zero R] (h : M.IsStrictUpperTriangular) : M.IsUpperTr
 
 theorem add [AddZeroClass R] (hM : M.IsStrictUpperTriangular) (hN : N.IsStrictUpperTriangular) :
     (M + N).IsStrictUpperTriangular := fun i j hij => by
-  simp only [add_apply, hM hij, hN hij, add_zero]
+  simp only [Matrix.add_apply, hM hij, hN hij, add_zero]
 
 theorem neg [SubtractionMonoid R] (hM : M.IsStrictUpperTriangular) :
     (-M).IsStrictUpperTriangular := fun i j hij => by
-  simp only [neg_apply, hM hij, neg_zero]
+  simp only [Matrix.neg_apply, hM hij, neg_zero]
 
 theorem sub [SubtractionMonoid R] (hM : M.IsStrictUpperTriangular)
     (hN : N.IsStrictUpperTriangular) : (M - N).IsStrictUpperTriangular := fun i j hij => by
-  simp only [sub_apply, hM hij, hN hij, sub_zero]
+  simp only [Matrix.sub_apply, hM hij, hN hij, sub_zero]
 
 theorem mul [Fintype V] [NonUnitalNonAssocSemiring R] (hM : M.IsStrictUpperTriangular)
     (hN : N.IsStrictUpperTriangular) : (M * N).IsStrictUpperTriangular := fun i j hij => by
@@ -134,9 +134,10 @@ theorem mul [Fintype V] [NonUnitalNonAssocSemiring R] (hM : M.IsStrictUpperTrian
 theorem det_one_add {V : Type*} [Fintype V] [DecidableEq V] [LinearOrder V] [CommRing R]
     {E : Matrix V V R} (h : E.IsStrictUpperTriangular) : (1 + E).det = 1 := by
   have hT : (1 + E).IsUpperTriangular := fun i j (hji : j < i) => by
-    rw [add_apply, one_apply_ne (ne_of_lt hji).symm, h.isUpperTriangular hji, add_zero]
+    rw [Matrix.add_apply, one_apply_ne (ne_of_lt hji).symm, h.isUpperTriangular hji, add_zero]
   rw [det_of_isUpperTriangular hT]
-  exact Finset.prod_eq_one fun i _ => by rw [add_apply, one_apply_eq, h (lt_irrefl i), add_zero]
+  exact Finset.prod_eq_one fun i _ => by
+    rw [Matrix.add_apply, one_apply_eq, h (lt_irrefl i), add_zero]
 
 end IsStrictUpperTriangular
 
@@ -240,11 +241,12 @@ theorem copySplit_mul_copyWeight [Fintype V] [DecidableEq V] [Fintype ι] [Semir
     copySplit r s D * copyWeight r = copyWeight r * D := by
   ext ⟨x, i⟩ z
   have hL : (copySplit r s D * copyWeight r) (x, i) z = r i x * D x z * ∑ j, s x z j * r j z := by
-    rw [mul_apply, Fintype.sum_prod_type, Fintype.sum_eq_single z fun y hy => ?_, Finset.mul_sum]
+    rw [Matrix.mul_apply, Fintype.sum_prod_type, Fintype.sum_eq_single z fun y hy => ?_,
+      Finset.mul_sum]
     · simp [copySplit, copyWeight, mul_assoc]
     · simp [copyWeight, hy]
   have hR : (copyWeight r * D) (x, i) z = r i x * D x z := by
-    rw [mul_apply, Fintype.sum_eq_single x fun y hy => ?_]
+    rw [Matrix.mul_apply, Fintype.sum_eq_single x fun y hy => ?_]
     · simp [copyWeight]
     · simp [copyWeight, Ne.symm hy]
   rw [hL, hR]
@@ -358,7 +360,7 @@ variable [Ring R] [PartialOrder R] [IsOrderedRing R]
 
 private theorem one_apply_nonneg {n : Type*} [DecidableEq n] (i j : n) :
     (0 : R) ≤ (1 : Matrix n n R) i j := by
-  rw [one_apply]; split_ifs <;> simp
+  rw [Matrix.one_apply]; split_ifs <;> simp
 
 private theorem mul_nonneg_entries {m n o : Type*} [Fintype n] {A : Matrix m n R}
     {B : Matrix n o R} (hA : ∀ i j, 0 ≤ A i j) (hB : ∀ i j, 0 ≤ B i j) (i : m) (k : o) :
