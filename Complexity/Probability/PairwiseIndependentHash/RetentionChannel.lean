@@ -35,8 +35,8 @@ retains fewer than `#A π / 2` of its identifiers with probability at most `4 / 
 channels with independent seeds, on the product seed space, give independent events
 (`dens_filter_fst_and_snd`).
 
-These are the channel properties used in Section 4 of the OpenAI preprint *Exact
-Derandomization of Logarithmic Space* (2026, unrefereed): there, `c_π f ≤ π_f ≤ C_π f`,
+These are the channel properties used in Section 4 of the unrefereed preprint
+[OpenAI2026LogSpace]: there, `c_π f ≤ π_f ≤ C_π f`,
 `Pr[Y(w) | Y(y)] ≤ C_pair f`, the lower tail `Pr[∑_{x ∈ A} X(x) < |A| π / 2] ≤ C_var / (|A| π)`,
 and the independence of the channels `X` and `Y`. Here the constants are `c_π = 1`,
 `C_π = C_pair = 2 ^ H` and `C_var = 4`. The preprint conditions its channels on linearly
@@ -62,6 +62,7 @@ only for the later averaging walks, so they are not needed here.
 
 * [B. Chor, O. Goldreich, *On the power of two-point based sampling*][ChorGoldreich1989]
 * [J. L. Carter, M. N. Wegman, *Universal classes of hash functions*][CarterWegman1979]
+* [OpenAI, *Exact Derandomization of Logarithmic Space*][OpenAI2026LogSpace]
 -/
 
 public section
