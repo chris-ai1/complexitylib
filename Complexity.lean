@@ -2373,6 +2373,7 @@ public import Complexity.Foundations.Combinatorics.Expander.Mixing
 public import Complexity.Foundations.Combinatorics.Expander.Multigraph
 public import Complexity.Foundations.Combinatorics.Expander.PairShearTranslation
 public import Complexity.Foundations.Combinatorics.Expander.Perm
+public import Complexity.Foundations.Combinatorics.Expander.PiProduct
 public import Complexity.Foundations.Combinatorics.Expander.Power
 public import Complexity.Foundations.Combinatorics.Expander.Random
 public import Complexity.Foundations.Combinatorics.Expander.Reindex
@@ -2920,6 +2921,7 @@ public import Complexity.Probability.PMF.Uniform
 public import Complexity.Probability.PairwiseIndependent
 public import Complexity.Probability.PairwiseIndependentHash
 public import Complexity.Probability.PairwiseIndependentHash.Affine
+public import Complexity.Probability.PairwiseIndependentHash.ComponentGap
 public import Complexity.Probability.PairwiseIndependentHash.ConditionalAveraging
 public import Complexity.Probability.PairwiseIndependentHash.FrameChannel
 public import Complexity.Probability.PairwiseIndependentHash.Retention
