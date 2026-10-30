@@ -29,14 +29,15 @@ With these channels the stage bound holds without any channel hypothesis
 `Fin (n (m + 1) ^ l)`, where the copy `y` of the parent `x` is the number `y + (m + 1) x`
 (`Matrix.radixCopyEquiv`) [OpenAI2026LogSpace, Section 4.5: appending a radix-`D₀` digit]. This
 gives a fully concrete instance of the hierarchy and its bound
-(`Matrix.sub_hierarchyReward_le_radix`).
+(`Matrix.sub_hierarchyReward_le_radix`). This instantiates the reduced algebraic-stage bound;
+the preprint's full threshold ladder and later-estimation root/complement regularity for `Q`
+and all step cutoffs remain separate requirements. The prime at each stage is chosen
+noncomputably; no prime-size or machine-resource bound is supplied.
 
 ## Main definitions
 
-* `Cslib.Probability.primeAtLeast`: a prime at least `n`.
 * `Cslib.Probability.stageModulus`, `Cslib.Probability.stageChannel`: the affine channel of stage
   `l` on identifiers below `M l`.
-* `Matrix.radixCopyEquiv`: radix identifiers for copies.
 
 ## Main results
 
@@ -58,15 +59,16 @@ open Finset
 namespace Cslib.Probability
 
 /-- A prime at least `n` (Euclid). -/
-noncomputable def primeAtLeast (n : ℕ) : ℕ := Classical.choose (Nat.exists_infinite_primes n)
+private noncomputable def primeAtLeast (n : ℕ) : ℕ :=
+  Classical.choose (Nat.exists_infinite_primes n)
 
-theorem le_primeAtLeast (n : ℕ) : n ≤ primeAtLeast n :=
+private theorem le_primeAtLeast (n : ℕ) : n ≤ primeAtLeast n :=
   (Classical.choose_spec (Nat.exists_infinite_primes n)).1
 
-theorem primeAtLeast_prime (n : ℕ) : (primeAtLeast n).Prime :=
+private theorem primeAtLeast_prime (n : ℕ) : (primeAtLeast n).Prime :=
   (Classical.choose_spec (Nat.exists_infinite_primes n)).2
 
-instance (n : ℕ) : Fact (primeAtLeast n).Prime := ⟨primeAtLeast_prime n⟩
+private instance (n : ℕ) : Fact (primeAtLeast n).Prime := ⟨primeAtLeast_prime n⟩
 
 variable (H : ℕ) (M : ℕ → ℕ)
 
@@ -145,34 +147,6 @@ theorem sub_hierarchyReward_le_affine {c : ℕ}
         Fintype.card (V 0) * ((2 : ℝ) ^ c)⁻¹ ^ l :=
   sub_hierarchyReward_le he rfl (retentionChannels_stageChannel hident hM) (by positivity) hS
     hS0 hS1 hp hp0 hp1 x l
-
-/-- **Radix identifiers for copies**: `Fin (n (m + 1) ^ (l + 1))` as the copies of
-`Fin (n (m + 1) ^ l)`, where the number `y + (m + 1) x` is the copy `y` of the parent `x`. This is
-the preprint's appending of a radix-`D₀` digit [OpenAI2026LogSpace, Section 4.5]. -/
-def radixCopyEquiv (n m l : ℕ) :
-    Fin (n * (m + 1) ^ (l + 1)) ≃ Lex (Fin (n * (m + 1) ^ l) × Fin (m + 1)) :=
-  (finCongr (by ring)).trans (finProdFinEquiv.symm.trans toLex)
-
-theorem radixCopyEquiv_val (n m l : ℕ) (a : Fin (n * (m + 1) ^ (l + 1))) :
-    a.val = (ofLex (radixCopyEquiv n m l a)).2.val +
-      (m + 1) * (ofLex (radixCopyEquiv n m l a)).1.val := by
-  have h := finProdFinEquiv_apply_val (ofLex (radixCopyEquiv n m l a))
-  simp only [radixCopyEquiv, Equiv.trans_apply, ofLex_toLex, Equiv.apply_symm_apply,
-    finCongr_apply, Fin.val_cast] at h
-  exact h
-
-/-- The radix identification reflects the order: copies are ordered by parent, then by symbol. -/
-theorem radixCopyEquiv_lt (n m l : ℕ) {a b : Fin (n * (m + 1) ^ (l + 1))}
-    (h : radixCopyEquiv n m l a < radixCopyEquiv n m l b) : a < b := by
-  rw [Fin.lt_def, radixCopyEquiv_val n m l a, radixCopyEquiv_val n m l b]
-  rcases Prod.Lex.lt_iff.mp h with h1 | ⟨h1, h2⟩
-  · have hx : (ofLex (radixCopyEquiv n m l a)).1.val + 1 ≤
-        (ofLex (radixCopyEquiv n m l b)).1.val := h1
-    have hy := (ofLex (radixCopyEquiv n m l a)).2.isLt
-    nlinarith
-  · rw [h1]
-    have : (ofLex (radixCopyEquiv n m l a)).2.val < (ofLex (radixCopyEquiv n m l b)).2.val := h2
-    omega
 
 /-- **The stage bound on radix identifiers**: a fully concrete hierarchy. Stage `l` is
 `Fin (n (m + 1) ^ l)` with radix identifiers, the channels are the affine stage channels on the
