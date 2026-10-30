@@ -23,6 +23,7 @@ examples. For setup or a particular task, start below.
 | --- | --- |
 | Use Complexitylib in another Lean project | [Add a pinned dependency](#use-from-another-lean-project) |
 | Build or edit this repository | [Build a checkout](#build-a-checkout) |
+| Compare selected proofs with independently stated contracts | [Comparator suites](comparator/README.md) |
 | Certify functional programs and loops | [PolyTime examples](ComplexityTests/PolyTimeTactic.lean) |
 | State P/NP membership or prove a problem NP-complete | [Checked plain examples](ComplexityTests/NPCompleteness.lean), then [Clique](Complexity/Computability/Complexity/Problems/Clique.lean) |
 | Construct circuits for polynomial-time function families | [Uniform circuit examples](ComplexityTests/UniformCircuits.lean) |
@@ -98,6 +99,14 @@ Import the specific modules you need. `import Complexity` imports the whole libr
 follow [CONTRIBUTING.md](CONTRIBUTING.md) and the
 [validation sequence](AGENTS.md#validation-sequence).
 
+### Compare theorem statements and proofs
+
+The optional [comparator suites](comparator/README.md) compare selected library proofs with
+independently stated contracts using `lake comparator --paranoid`. They cover reduction and
+circuit facts, two `polytime` proofs, and the fixed-width SAT counting and ETH endpoints.
+The guide explains the Linux sandbox requirement, the trusted definitions, and how to run a
+negative control that submits a valid proof of the wrong statement.
+
 ### Use from another Lean project
 
 APIs are still evolving, so pin a full commit SHA. Choose a revision from the
@@ -152,6 +161,20 @@ Open `http://localhost:8000` to browse and search. The **API documentation** wor
 `main` to the [API documentation site](https://www.cslib.io/complexitylib/) nightly.
 A manual run on another branch produces an `api-docs` artifact instead; serve it by replacing
 the directory argument above with the extracted artifact directory.
+
+If removing a source module leaves `check_docs.py` reporting obsolete modules, rebuild the
+generated documentation after any documentation build has stopped:
+
+```bash
+lake -d docbuild clean docbuild
+lake -d docbuild build Complexity:docs
+python3 scripts/check_docs.py
+```
+
+The named clean removes only `docbuild/.lake/build`, including HTML, per-module data and the
+SQLite database; deleting HTML alone leaves stale data behind. Library and dependency build
+outputs, package checkouts and Lake's artifact cache are retained. Documentation for all imported
+modules is regenerated, which can take substantial time even with warm library build outputs.
 
 #### Checked guide
 
