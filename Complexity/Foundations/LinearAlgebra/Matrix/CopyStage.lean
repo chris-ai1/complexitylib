@@ -23,6 +23,14 @@ its support lies in a set at most twice as large as the support of `C`
 `Matrix.sub_rewardTransport_mulVec_le_pow`; `Matrix.sub_rewardTransport_mulVec_le_of_rates`
 iterates them.
 
+Stages can be chained. If `C` is strictly upper triangular, so is the residual `D`
+(`Matrix.cutoffCorrection_residual_isStrictUpperTriangular`), and the copy step is strictly upper
+triangular for the lexicographic order on the copies `Lex (V × Fin (m + 1))`, which is linearly
+ordered (`Matrix.copyStage_isStrictUpperTriangular`). Its rows sum to at most one
+(`Matrix.copyStage_mulVec_one_le` with `Matrix.correction_mulVec_one_le`) and its entries are
+nonnegative under the cutoff assumptions `0 ≤ χ ≤ 1` (`Matrix.copyStage_nonneg` with
+`Matrix.cutoffCorrection_residual_nonneg`), so it satisfies the input hypotheses of the next stage.
+
 The choice of which columns are corrected and which vertices get active copies comes from the
 preprint's *detectors*, which are probabilistic. Here it is an interface: copy weights `r` with
 `r 0 = 1`, and a finite set `O` of *overloaded* vertices, such that
@@ -33,8 +41,9 @@ preprint's *detectors*, which are probabilistic. Here it is an interface: copy w
 * `m |O| ≤ |A|`, where `m + 1` is the number of copies and `A` covers the support of `C`.
 
 The last condition follows from incidence counting (`Matrix.card_mul_le_of_incidences`): if every
-overloaded column has many large entries in one of a few substochastic matrices, as the detectors
-guarantee for the pilot inputs, then there are few overloaded columns.
+overloaded column has many large entries in one of a few matrices with the stated row-sum bounds,
+as the detectors guarantee for the pilot inputs, then there are few overloaded columns. The pilot
+inputs have bounded row sums, not necessarily at most one [OpenAI2026LogSpace, Lemma 4.2].
 
 The corrected matrix also satisfies the remaining bounds of Lemma 4.4 of the preprint. Its entries
 are at most `(k + 1) f` (`Matrix.cutoffCorrection_residual_le_mul`). It dominates its unsigned
@@ -58,6 +67,9 @@ which lets the three terms of `D` be estimated separately. Its support stays wit
   `Matrix.copyStage_le`, `Matrix.copyStage_mem_copyCover`, `Matrix.card_copyCover_le`: the copy
   step intertwines with its projection, is substochastic, has small entries and few active
   copies.
+* `Matrix.cutoffCorrection_residual_isStrictUpperTriangular`,
+  `Matrix.copyStage_isStrictUpperTriangular`: a stage maps strictly upper triangular matrices to
+  strictly upper triangular ones, for the lexicographic order on the copies.
 * `Matrix.card_mul_le_of_incidences`: incidence counting.
 * `Matrix.copyStage_rates`: the one-stage density and active-count bounds.
 * `Matrix.sub_rewardTransport_mulVec_le_of_rates`: the stage bound from per-stage rates.
@@ -248,6 +260,28 @@ theorem cutoffCorrection_residual_mem (hA : ∀ x y, C x y ≠ 0 → x ∈ A ∧
   · rw [hCz, mul_zero]
   exact absurd ⟨(hE x z hEz).1, (hA z y hCz).2⟩ hxy
 
+include hφ0 hφθ hθf in
+/-- The iterates of the cutoff correction of a strictly upper triangular matrix are strictly upper
+triangular. -/
+theorem cutoffCorrectionIter_isStrictUpperTriangular [Preorder V]
+    (hC : C.IsStrictUpperTriangular) (k : ℕ) :
+    (cutoffCorrectionIter φ C k).IsStrictUpperTriangular := by
+  induction k with
+  | zero => intro x y _; simp [cutoffCorrectionIter]
+  | succ k ih =>
+    intro x y hxy
+    rw [cutoffCorrectionIter_succ]
+    change φ y ((C + cutoffCorrectionIter φ C k * C) x y) = 0
+    rw [(hC.add (ih.mul hC)) hxy, cutoff_zero hφ0 hφθ hθf]
+
+include hφ0 hφθ hθf in
+/-- **The residual of a strictly upper triangular matrix is strictly upper triangular.** -/
+theorem cutoffCorrection_residual_isStrictUpperTriangular [Preorder V]
+    (hC : C.IsStrictUpperTriangular) (k : ℕ) :
+    (C - cutoffCorrectionIter φ C k + cutoffCorrectionIter φ C k * C).IsStrictUpperTriangular :=
+  have hE := cutoffCorrectionIter_isStrictUpperTriangular hφ0 hφθ hθf hC k
+  (hC.sub hE).add (hE.mul hC)
+
 end Residual
 
 /-! ### Copy fractions -/
@@ -317,6 +351,16 @@ copies of the overloaded vertices `O`. -/
 @[expose] def copyCover [DecidableEq V] (A O : Finset V) : Finset (V × Fin (m + 1)) :=
   A ×ˢ {0} ∪ O ×ˢ univ.erase 0
 
+/-- **The copy step stays strictly upper triangular** for the lexicographic order on the copies:
+`(x, i)` comes before `(y, j)` when `x < y`, or `x = y` and `i < j`. Indexed by
+`Lex (V × Fin (m + 1))`, which is linearly ordered when `V` is, the copy step can be the input of
+the next stage. -/
+theorem copyStage_isStrictUpperTriangular [Preorder V] (hD : D.IsStrictUpperTriangular) :
+    ((copyStage χ m r D).submatrix ofLex ofLex).IsStrictUpperTriangular := by
+  intro a b hab
+  simp only [submatrix_apply, copyStage, copySplit, of_apply]
+  rw [hD fun h => hab (Prod.Lex.lt_iff.2 (Or.inl h)), mul_zero, zero_mul]
+
 theorem card_copyCover_le [DecidableEq V] (A O : Finset V) :
     #(copyCover (m := m) A O) ≤ #A + m * #O := by
   refine (card_union_le _ _).trans ?_
@@ -341,7 +385,10 @@ theorem copyStage_nonneg (hr : ∀ j x, 0 ≤ r j x) (hD : ∀ x y, 0 ≤ D x y)
     0 ≤ copyStage χ m r D a b :=
   copySplit_nonneg hr (fun _ _ j => copyFraction_nonneg (hχ0 _) (hχ1 _) j) hD a b
 
-/-- The copy step is substochastic when `D` is and the weights lie in `[0, 1]`. -/
+/-- **The copy step preserves the row-sum upper bound**: its rows sum to at most one when `D` is
+nonnegative with rows summing to at most one and the weights lie in `[0, 1]`. Substochasticity
+also needs nonnegative entries, which `Matrix.copyStage_nonneg` gives under the additional
+cutoff assumptions `0 ≤ χ ≤ 1`. -/
 theorem copyStage_mulVec_one_le [Fintype V] (hr0 : ∀ j x, 0 ≤ r j x) (hr1 : ∀ j x, r j x ≤ 1)
     (hD0 : ∀ x y, 0 ≤ D x y) (hD1 : D *ᵥ 1 ≤ 1) : copyStage χ m r D *ᵥ 1 ≤ 1 :=
   copySplit_mulVec_one_le hr0 hr1 (fun x y => (sum_copyFraction χ m (D x y)).le) hD0 hD1

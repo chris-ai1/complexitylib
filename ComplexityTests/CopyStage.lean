@@ -118,6 +118,23 @@ example : ∀ a b, copyStage χ 1 r (C - cutoffCorrectionIter φ C 0 +
 
 example : #(copyCover (m := 1) (univ : Finset (Fin 3)) univ) ≤ 6 := stage.2.2.2
 
+/-! ### Chaining stages -/
+
+-- The stage output, indexed by the lexicographically ordered copies, is again strictly upper
+-- triangular, so it can be the input `C` of the next stage.
+example : ((copyStage χ 1 r (C - cutoffCorrectionIter φ C 0 +
+    cutoffCorrectionIter φ C 0 * C)).submatrix ofLex ofLex).IsStrictUpperTriangular :=
+  copyStage_isStrictUpperTriangular
+    (cutoffCorrection_residual_isStrictUpperTriangular hφ0 hφθ (by norm_num) hC 0)
+
+-- Concretely, the copy `(1, 1)` of the middle vertex comes after both copies of vertex `0`, so
+-- the entries from it back to them vanish.
+example (i : Fin 2) : (copyStage χ 1 r (C - cutoffCorrectionIter φ C 0 +
+    cutoffCorrectionIter φ C 0 * C)) (1, 1) (0, i) = 0 :=
+  copyStage_isStrictUpperTriangular (V := Fin 3)
+    (cutoffCorrection_residual_isStrictUpperTriangular hφ0 hφθ (by norm_num) hC 0)
+    (i := toLex (1, 1)) (j := toLex (0, i)) (by simp [Prod.Lex.lt_iff])
+
 /-! ### Incidence counting -/
 
 -- In the walk, both targets `1` and `2` have an entry `1 / 2 > 1 / 4`, so
