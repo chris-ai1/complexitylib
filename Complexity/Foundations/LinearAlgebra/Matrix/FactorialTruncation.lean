@@ -105,7 +105,7 @@ variable [LinearOrder V]
 private theorem cutoffCorrection_congr (hC : C.IsStrictUpperTriangular) {F G : Matrix V V R}
     {x y : V} (h : ∀ z < y, F x z = G x z) :
     cutoffCorrection φ C F x y = cutoffCorrection φ C G x y := by
-  simp only [cutoffCorrection, of_apply, add_apply, mul_apply]
+  simp only [cutoffCorrection, of_apply, Matrix.add_apply, Matrix.mul_apply]
   congr 2
   refine Finset.sum_congr rfl fun z _ => ?_
   by_cases hz : z < y
@@ -191,7 +191,7 @@ include hC0 hφm in
 private theorem cutoffCorrection_mono {F G : Matrix V V ℝ} (hFG : ∀ x y, F x y ≤ G x y)
     (x y : V) : cutoffCorrection φ C F x y ≤ cutoffCorrection φ C G x y := by
   refine hφm y ?_
-  simp only [add_apply, mul_apply]
+  simp only [Matrix.add_apply, Matrix.mul_apply]
   exact add_le_add_right (Finset.sum_le_sum fun z _ =>
     mul_le_mul_of_nonneg_right (hFG x z) (hC0 z y)) _
 
@@ -271,7 +271,7 @@ private theorem card_support_mul_le (hθf : 0 ≤ θ * f) :
   have hE0 : ∀ i j, 0 ≤ E i j := cutoffCorrectionIter_nonneg hφ0 _
   have hEfix : ∀ y, E x y = φ y ((C + E * C) x y) := fix_apply hC x
   have hres : ∀ y, (C - E + E * C) x y = (C + E * C) x y - E x y := fun y => by
-    simp only [add_apply, sub_apply]; ring
+    simp only [Matrix.add_apply, Matrix.sub_apply]; ring
   have hres0 : ∀ y, 0 ≤ (C - E + E * C) x y := fun y => by
     rw [hres, hEfix y, sub_nonneg]
     exact cutoff_le_self hφθ hθf y (correctionInput_nonneg hC0 hE0 x y)
@@ -317,7 +317,7 @@ private theorem fix_le_pow (hf : 0 ≤ f) (hθf : 0 ≤ θ * f) (y : V) :
     calc E x y ≤ (C + E * C) x y := by
           rw [hEfix]; exact cutoff_le_self hφθ hθf y (correctionInput_nonneg hC0 hE0 x y)
       _ = C x y + ∑ z ∈ S.filter (· < y), E x z * C z y := by
-          rw [add_apply, mul_apply, hsum]
+          rw [Matrix.add_apply, Matrix.mul_apply, hsum]
       _ ≤ f + ∑ z ∈ S.filter (· < y), f * (1 + f) ^ #(S.filter (· < z)) * f := by
           refine add_le_add (hCf x y) (Finset.sum_le_sum fun z hz => ?_)
           exact mul_le_mul (ih z (mem_filter.mp hz).2) (hCf z y) (hC0 z y) (by positivity)
@@ -353,14 +353,16 @@ private theorem fix_sub_iter_le_choose (hf : 0 ≤ f) (hθf : 0 ≤ θ * f) (hL 
     have hsum : ∑ z, (E - F) x z * C z y = ∑ z ∈ S.filter (· < y), (E - F) x z * C z y :=
       sum_mul_eq_sum_support x hC (fun z hz => by
         change E x z = 0 at hz
-        rw [sub_apply, hz, sub_eq_zero]
+        rw [Matrix.sub_apply, hz, sub_eq_zero]
         exact le_antisymm (cutoffCorrectionIter_nonneg (C := C) hφ0 k x z) (hz ▸ hFE z)) y
     have hdiff : (C + E * C) x y - (C + F * C) x y = ∑ z, (E - F) x z * C z y := by
-      simp only [add_apply, mul_apply, sub_apply, sub_mul, Finset.sum_sub_distrib]; ring
+      simp only [Matrix.add_apply, Matrix.mul_apply, Matrix.sub_apply, sub_mul,
+        Finset.sum_sub_distrib]
+      ring
     have hle : (C + F * C) x y ≤ (C + E * C) x y := by
       rw [← sub_nonneg, hdiff]
-      exact Finset.sum_nonneg fun z _ => mul_nonneg (by rw [sub_apply, sub_nonneg]; exact hFE z)
-        (hC0 z y)
+      exact Finset.sum_nonneg fun z _ =>
+        mul_nonneg (by rw [Matrix.sub_apply, sub_nonneg]; exact hFE z) (hC0 z y)
     calc E x y - cutoffCorrectionIter φ C (k + 1) x y
         = φ y ((C + E * C) x y) - φ y ((C + F * C) x y) := by
           rw [hEfix, cutoffCorrectionIter_succ]; rfl
@@ -370,7 +372,7 @@ private theorem fix_sub_iter_le_choose (hf : 0 ≤ f) (hθf : 0 ≤ θ * f) (hL 
       _ ≤ L * ∑ z ∈ S.filter (· < y),
             f * (1 + f) ^ #S * (L * f) ^ k * (#(S.filter (· < z))).choose k * f := by
           refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun z _ => ?_) hL
-          rw [sub_apply]
+          rw [Matrix.sub_apply]
           exact mul_le_mul (ih z) (hCf z y) (hC0 z y) (by positivity)
       _ = f * (1 + f) ^ #S * (L * f) ^ (k + 1) *
             ∑ z ∈ S.filter (· < y), ((#(S.filter (· < z))).choose k : ℝ) := by
@@ -445,8 +447,8 @@ theorem cutoffCorrection_residual_nonneg (hθf : 0 ≤ θ * f) (k : ℕ) (x y : 
         (cutoffCorrectionIter φ C (k + 1) * C) x y :=
       Finset.sum_le_sum fun z _ => mul_le_mul_of_nonneg_right
         (cutoffCorrectionIter_le_succ hC0 hφ0 hφm k x z) (hC0 z y)
-    rw [← hstep, add_apply] at hcut
-    rw [add_apply, sub_apply]
+    rw [← hstep, Matrix.add_apply] at hcut
+    rw [Matrix.add_apply, Matrix.sub_apply]
     linarith
 
 include hC hC0 hCf hC1 hφ0 hφθ hφm hφL in
@@ -466,7 +468,7 @@ theorem cutoffCorrection_residual_le (hf : 0 < f) (hθ : 0 < θ) (hL : 0 ≤ L) 
       (cutoffCorrectionIter_le_fix hC hC0 hφ0 hφm k x z) (hC0 z y)
   have hT := hgood ((C + E * C) x y)
   rw [← hEfix] at hT
-  simp only [add_apply, sub_apply] at hT hΔC ⊢
+  simp only [Matrix.add_apply, Matrix.sub_apply] at hT hΔC ⊢
   linarith
 
 /-- **A constant number of iterations suffices**: for every accuracy `δ > 0` there is `k`, depending
