@@ -34,16 +34,26 @@ using `m ≤ λ ^ (2 s) 𝔼 f²` and `(𝔼 f²)² ≤ 𝔼 f⁴` (`expect_walk
 the Riesz–Thorin interpolation theorem; here no interpolation is needed. The centred form
 (`expect_walk_pow_two_mul_sub_expect_pow_four_le`) applies to every function.
 
+The use of `Lᵖ` contraction of the walk (idea 8 in issue #474) comes from the OpenAI preprint
+on derandomizing logarithmic space [OpenAI2026LogSpace], where the `Lˢ` decay
+`‖K ^ d - Π‖_{s → s} ≤ 2 ^ (1 - 2 / s) (1 - γ) ^ (2 d / s)` appears in the proof of Lemma 6.2 and
+comes from the Riesz–Thorin theorem; the Jensen argument here is a different proof.
+
 ## Main results
 
-* `Cslib.RotationMap.sq_walk_le`, `Cslib.RotationMap.sq_walk_pow_le`: Jensen's inequality for
-  walks.
+* `Cslib.RotationMap.sq_walk_pow_le`: Jensen's inequality for walks of every length, from the
+  one-step `Cslib.RotationMap.sq_walk_le`.
 * `Cslib.RotationMap.expect_walk_pow_pow_four_le`: walks do not increase fourth moments.
 * `Cslib.RotationMap.expect_walk_pow_add_pow_four_le`: the fourth-moment decay
   `𝔼 (W ^ (s + t) f) ^ 4 ≤ (λ ^ (4 s) + λ ^ (2 t)) 𝔼 f ^ 4` for `𝔼 f = 0`.
 * `Cslib.RotationMap.expect_walk_pow_two_mul_pow_four_le`,
   `Cslib.RotationMap.expect_walk_pow_two_mul_sub_expect_pow_four_le`: over `2 t` steps the
   fourth moment of the deviation from the mean shrinks by `2 λ ^ (2 t)`.
+
+## References
+
+* [OpenAI, *Exact Derandomization of Logarithmic Space: L = RL = BPL*][OpenAI2026LogSpace],
+  proof of Lemma 6.2 (preprint, not peer reviewed)
 -/
 
 public section
@@ -63,14 +73,6 @@ variable [Fintype D]
 theorem walk_mono {f g : V → ℝ} (h : ∀ v, f v ≤ g v) (v : V) : G.walk f v ≤ G.walk g v := by
   simp only [walk_apply]
   exact expect_le_expect fun i _ ↦ h _
-
-/-- **Jensen's inequality for the walk**: the square of an average of neighbors is at most the
-average of the squares. -/
-theorem sq_walk_le (f : V → ℝ) (v : V) : G.walk f v ^ 2 ≤ G.walk (fun w ↦ f w ^ 2) v := by
-  rcases isEmpty_or_nonempty D with hD | hD
-  · simp [walk_apply]
-  simpa [walk_apply] using
-    expect_mul_sq_le_sq_mul_sq univ (fun i ↦ f (G.neighbor v i)) fun _ ↦ 1
 
 /-- **Jensen's inequality for walks of every length.** -/
 theorem sq_walk_pow_le (t : ℕ) (f : V → ℝ) (v : V) :

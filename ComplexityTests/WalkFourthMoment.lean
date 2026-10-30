@@ -29,10 +29,18 @@ example : (affinePlane (ZMod 3)).walk (fun p ↦ if p = (1, 0) then (1 : ℝ) el
     (affinePlane (ZMod 3)).walk (fun p ↦ (if p = (1, 0) then (1 : ℝ) else 0) ^ 2) (0, 0) :=
   sq_walk_le _ _ _
 
-example : (affinePlane (ZMod 3)).walk (fun p ↦ if p = (1, 0) then (1 : ℝ) else 0) (0, 0) =
-    1 / 3 := by
+private theorem walk_indicator :
+    (affinePlane (ZMod 3)).walk (fun p ↦ if p = (1, 0) then (1 : ℝ) else 0) (0, 0) = 1 / 3 := by
   rw [walk_affinePlane, Fintype.expect_eq_sum_div_card]
   simp [ZMod.card]
+
+-- Here Jensen's inequality is strict.
+example : (affinePlane (ZMod 3)).walk (fun p ↦ if p = (1, 0) then (1 : ℝ) else 0) (0, 0) ^ 2 <
+    (affinePlane (ZMod 3)).walk (fun p ↦ (if p = (1, 0) then (1 : ℝ) else 0) ^ 2) (0, 0) := by
+  have h : (fun p : ZMod 3 × ZMod 3 ↦ (if p = (1, 0) then (1 : ℝ) else 0) ^ 2) =
+      fun p ↦ if p = (1, 0) then (1 : ℝ) else 0 := funext fun p ↦ by split_ifs <;> norm_num
+  rw [h, walk_indicator]
+  norm_num
 
 -- Two steps of the affine-plane walk over `𝔽₅` shrink fourth moments by the factor `2 / 5`.
 example (f : ZMod 5 × ZMod 5 → ℝ) (hf : 𝔼 v, f v = 0) :
