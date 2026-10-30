@@ -2913,6 +2913,7 @@ public import Complexity.Probability.PairwiseIndependentHash
 public import Complexity.Probability.PairwiseIndependentHash.Affine
 public import Complexity.Probability.PairwiseIndependentHash.ConditionalAveraging
 public import Complexity.Probability.PairwiseIndependentHash.FrameChannel
+public import Complexity.Probability.PairwiseIndependentHash.FrameSubstitution
 public import Complexity.Probability.PairwiseIndependentHash.Retention
 public import Complexity.Probability.PairwiseIndependentHash.RetentionChannel
 public import Complexity.Probability.PairwiseIndependentHash.Shift
