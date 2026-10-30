@@ -11,23 +11,32 @@ public import Complexity.Foundations.Probability.DetectedStage
 import Mathlib.Algebra.Order.Floor.Semiring
 
 /-!
-# Constants for the correction-and-copy hierarchy
+# Algebraic-stage parameters for the correction-and-copy hierarchy
 
 One stage of the hierarchy of the OpenAI preprint (2026-09-23), Section 4 [OpenAI2026LogSpace],
 is driven by finitely many constants and cutoff functions: the correction ramp `Q` with its
 thresholds `θ ≤ θ₂` and Lipschitz constant `L`, the iteration count `k*`, the number of copies
 `D₀ = m + 1`, the copy thresholds `τ₀ < τ₁`, the detector thresholds `δ₀ < δ₁` and `η`, the
 detector ranks `J` and `K`, the count threshold `R*`, and the cutoffs `ϕ`, `ρ`, `γ`, `κ`, `χ`.
-`Matrix.HierarchyParams q cπ Cπ Cpair Cvar` bundles them with every condition that the stage
-lemmas need, for the density divisor `q` and the channel constants of
+`Matrix.HierarchyParams q cπ Cπ Cpair Cvar` bundles the reduced algebraic conditions used by the
+stage lemmas, together with additional detector-cutoff data, for the density divisor `q` and the
+channel constants of
 `Cslib.Probability.RetentionChannels`. All of them are fixed before the stage: the thresholds are
 relative to the rate `f`, so the same parameters serve every stage.
 
-**Existence** (`Matrix.HierarchyParams.nonempty`). For every `q > 0` and channel constants with
-`c_π > 0`, there are such parameters [OpenAI2026LogSpace, Remark 4.6]. The
+**Reduced algebraic-stage existence** (`Matrix.HierarchyParams.nonempty`). For every `q > 0`
+and channel constants with `c_π > 0`, there are parameters satisfying this bundle. Following
+[OpenAI2026LogSpace, Remark 4.6], the
 choice follows the order of the preprint: first `θ = θ₂ = 1 / (4q)` and the hard ramp
 `Q t = max (t - θ) 0`, then `k*` from the factorial bound (`Matrix.exists_factorial_bound_le`),
-then `D₀ = ⌈q⌉ (k* + 1)`, then `J` from (4.24), and finally `K` and `R*` from Lemma 4.3.
+then `m = ⌈q⌉₊ (k* + 1)` and `D₀ = m + 1`, then `J` from (4.24), and finally `K` and `R*`
+from Lemma 4.3.
+
+This witness establishes only the reduced algebraic-stage package encoded here. It does not
+satisfy the preprint's full threshold ladder or the regularity package needed for later
+estimation. Besides the hard ramp `Q`, the cutoffs `χ`, `ϕ`, `ρ`, `γ` and `κ` are discontinuous
+steps. The additional threshold conditions and root/complement regularity for `Q` and these
+cutoffs remain open; replacing `Q` alone does not supply them.
 
 **One stage** (`Matrix.HierarchyParams.stage_rates`). At rate `f > 0`, the stage uses the cutoffs
 `c t = f Q (t / f)` and `χ (t / f)` (`Matrix.HierarchyParams.cutoff`,
@@ -41,13 +50,13 @@ hypotheses are those on the input matrix and the channel interface.
 
 ## Main definitions
 
-* `Matrix.HierarchyParams`: the constants and cutoffs of a stage, with their conditions.
+* `Matrix.HierarchyParams`: the reduced algebraic-stage parameters and cutoff data.
 * `Matrix.HierarchyParams.pilot`, `Matrix.HierarchyParams.residual`,
   `Matrix.HierarchyParams.weight`, `Matrix.HierarchyParams.next`: one stage.
 
 ## Main results
 
-* `Matrix.HierarchyParams.nonempty`: the constants exist for every `q > 0`.
+* `Matrix.HierarchyParams.nonempty`: reduced algebraic-stage parameters exist for every `q > 0`.
 * `Matrix.HierarchyParams.stage_rates`: one stage satisfies the per-stage rates.
 * `Matrix.HierarchyParams.next_isStrictUpperTriangular`, `Matrix.HierarchyParams.next_nonneg`,
   `Matrix.HierarchyParams.next_mulVec_one_le`: the next stage is again a valid input.
@@ -64,10 +73,11 @@ open Finset Cslib.Probability
 
 namespace Matrix
 
-/-- **The constants and cutoffs of a stage** of the hierarchy, for the density divisor `q` and
-the channel constants `cπ, Cπ, Cpair, Cvar`, with every condition used by the stage lemmas
+/-- **The reduced algebraic-stage parameters** of the hierarchy, for the density divisor `q` and
+the channel constants `cπ, Cπ, Cpair, Cvar`, together with additional detector-cutoff data
 [OpenAI2026LogSpace, Sections 4.1–4.4 and Remark 4.6]. Thresholds of the ramp `Q` and of the
-copy cutoff `χ` are relative to the rate `f`. -/
+copy cutoff `χ` are relative to the rate `f`. The preprint's full threshold ladder and later
+root/complement regularity for `Q` and all the step cutoffs are not part of this bundle. -/
 structure HierarchyParams (q cπ Cπ Cpair Cvar : ℝ) where
   /-- The correction ramp: the cutoff at rate `f` is `t ↦ f Q (t / f)`. -/
   Q : ℝ → ℝ
@@ -168,10 +178,13 @@ private theorem down_of_lt {a t : ℝ} (h : a < t) : down a t = 0 := by
 private theorem down_antitone (a : ℝ) : Antitone (down a) := fun s t hst => by
   unfold down; split_ifs with h1 h2 <;> first | exact absurd (hst.trans h1) h2 | norm_num
 
-/-- **The constants exist** [OpenAI2026LogSpace, Remark 4.6]: for every density divisor `q > 0`
-and channel constants with `c_π > 0`, there are stage parameters. They are chosen
+/-- **Reduced algebraic-stage parameters exist**: for every density divisor `q > 0` and channel
+constants with `c_π > 0`, there are parameters satisfying this bundle. Following
+[OpenAI2026LogSpace, Remark 4.6], they are chosen
 in the order of the preprint: the ramp, then `k*` by factorial truncation, then the copies, then
-the detector ranks `J` and `K`, then `R*`. -/
+the detector ranks `J` and `K`, then `R*`. The witness uses a hard ramp and step cutoffs;
+the full threshold ladder and later-estimation regularity for all cutoffs and their relevant
+complements remain open. -/
 theorem nonempty (hq : 0 < q) (hcπ : 0 < cπ) :
     Nonempty (HierarchyParams q cπ Cπ Cpair Cvar) := by
   have hq0 : 0 < q := hq
