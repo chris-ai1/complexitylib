@@ -22,7 +22,8 @@ where `ρ` is the action of the same elementary matrix on the frames.
 
 The second moment of `f` about its average over the whole tuple `w` is at most `512` times the sum,
 over the coordinates `i`, of the total squared change of `f` along the moves of a pair `(i, σ i)`
-with `σ i ≠ i` (`expect_sq_sub_expect_le_pairShearTranslation`). The proof combines:
+with `σ i ≠ i` (`expect_sq_sub_expect_le_pairShearTranslation`). Such a `σ` exists only when
+`H ≠ 1`; for `H = 1` the hypothesis cannot hold, and the bound says nothing. The proof combines:
 
 * the Efron–Stein inequality (`Fintype.expect_sq_sub_expect_le_sum_expect_sq_sub_update`), which
   reduces the distance from the functions of `y` alone to the distances from the functions not

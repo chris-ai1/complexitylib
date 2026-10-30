@@ -10,8 +10,8 @@ import Complexity.Foundations.Probability.EfronStein
 /-!
 # Shears and translations of coordinate pairs
 
-Concrete pair moves on `ZMod 2 × (Fin 3 → ZMod 5)`, an instance of the Efron–Stein inequality, and
-a client of the pair bound: a function invariant under the moves of the pairs
+Concrete pair moves on `ZMod 2 × (Fin 3 → ZMod 5)`, a concrete instance of the Efron–Stein
+inequality, and a client of the pair bound: a function invariant under the moves of the pairs
 `(i, i + 1)` of `Fin 3` depends only on the spectator, for every modulus `L` and every action on
 the spectator.
 -/
@@ -30,10 +30,24 @@ example : pairShearTranslationMove (L := 5) (Equiv.addRight (1 : ZMod 2)) (Equiv
 example : pairShearTranslationMove (L := 5) (Equiv.addRight (1 : ZMod 2)) (Equiv.refl _) 1 2 3
     (0, ![1, 2, 4]) = (0, ![1, 2, 0]) := by decide
 
-/-- The Efron–Stein inequality instantiates with a trivial spectator and the alphabet `Bool`. -/
-example (f : Unit × (Fin 2 → Bool) → ℝ) :
-    𝔼 p, (f p - 𝔼 w, f (p.1, w)) ^ 2 ≤ ∑ i, 𝔼 p, (f p - 𝔼 a, f (p.1, update p.2 i a)) ^ 2 :=
-  Fintype.expect_sq_sub_expect_le_sum_expect_sq_sub_update f
+/-- The indicator that the two coordinates of a uniform `w : Fin 2 → Bool` agree. -/
+noncomputable def eqInd (p : Unit × (Fin 2 → Bool)) : ℝ := if p.2 0 = p.2 1 then 1 else 0
+
+/-- **Efron–Stein on a concrete function**: the second moment of `eqInd` about its average is
+`1 / 4`, and the sum of the single-coordinate terms is `1 / 2`. -/
+example : 𝔼 p, (eqInd p - 𝔼 w, eqInd (p.1, w)) ^ 2 = 1 / 4 ∧
+    ∑ i, 𝔼 p, (eqInd p - 𝔼 a, eqInd (p.1, update p.2 i a)) ^ 2 = 1 / 2 := by
+  constructor
+  · simp only [Fintype.expect_prod_type, Fin.expect_univ_cons, Fintype.expect_bool,
+      Fintype.expect_unique]
+    norm_num [eqInd]
+  · simp only [Fin.sum_univ_two, Fintype.expect_prod_type, Fin.expect_univ_cons,
+      Fintype.expect_bool, Fintype.expect_unique]
+    norm_num [eqInd, update_apply]
+
+example : 𝔼 p, (eqInd p - 𝔼 w, eqInd (p.1, w)) ^ 2 ≤
+    ∑ i, 𝔼 p, (eqInd p - 𝔼 a, eqInd (p.1, update p.2 i a)) ^ 2 :=
+  Fintype.expect_sq_sub_expect_le_sum_expect_sq_sub_update eqInd
 
 /-- **A client**: on `Y × (Fin 3 → ZMod L)`, a real function invariant under the moves of the
 pairs `(i, i + 1)` depends only on the spectator, whatever the actions `ρ` on `Y`. -/

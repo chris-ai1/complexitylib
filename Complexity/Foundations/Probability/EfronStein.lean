@@ -19,8 +19,10 @@ For a function `f` of a spectator `y` and of a uniformly random tuple `w : Fin n
 moment of `f` about its average over `w` is at most the sum, over the coordinates `i`, of the second
 moments of `f` about its averages over the single coordinate `w i`
 (`Fintype.expect_sq_sub_expect_le_sum_expect_sq_sub_update`):
-`𝔼 (f - 𝔼_w f)² ≤ ∑ i, 𝔼 (f - 𝔼_{w i} f)²`. This is the Efron–Stein inequality for the uniform
-product measure, with the spectator as an extra fixed coordinate. It reduces the distance of `f`
+`𝔼 (f - 𝔼_w f)² ≤ ∑ i, 𝔼 (f - 𝔼_{w i} f)²`. This is the Efron–Stein inequality
+[Efron and Stein][EfronStein1981] in the general form for functions that need not be symmetric
+[Steele][Steele1986], for the uniform product measure and with the spectator as an extra fixed
+coordinate. It reduces the distance of `f`
 from the functions of `y` alone to its distances from the functions not depending on one coordinate
 at a time.
 
@@ -33,6 +35,11 @@ on these fibers, and bound the fiber averages by Jensen's inequality.
 * `Fintype.expect_sq_sub_expect_le_sum_expect_sq_sub_update`: the Efron–Stein inequality.
 * `Fintype.expect_sq_sub_expect_update_le`: the average over one coordinate is the best
   approximation by functions not depending on it.
+
+## References
+
+* [B. Efron, C. Stein, *The Jackknife Estimate of Variance*][EfronStein1981]
+* [J. M. Steele, *An Efron-Stein Inequality for Nonsymmetric Statistics*][Steele1986]
 -/
 
 public section
