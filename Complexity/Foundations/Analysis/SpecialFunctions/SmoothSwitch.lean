@@ -28,7 +28,8 @@ We take Mathlib's `Real.smoothTransition`, rescaled to `[α, β]` (`Cslib.smooth
 preprint instead rescales a normalized integral of `z^{s-1} (1 - z)^{s-1}`; any fixed switch with
 these properties serves. Every positive power of `Real.smoothTransition` is again continuously
 differentiable, since `exp (-1/x) ^ p = exp (-1/(x/p))`, and it is constant outside `[0, 1]`. Hence
-every positive power is Lipschitz (`Real.smoothTransition.exists_lipschitzWith_rpow`). The complement is the reflection
+every positive power is Lipschitz (`Real.smoothTransition.exists_lipschitzWith_rpow`).
+The complement is the reflection
 `1 - smoothTransition x = smoothTransition (1 - x)` (`Real.smoothTransition.one_sub`), so its powers
 are Lipschitz too.
 
