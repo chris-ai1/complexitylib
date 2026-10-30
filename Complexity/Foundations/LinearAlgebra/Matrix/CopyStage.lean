@@ -125,7 +125,7 @@ theorem cutoffCorrectionIter_sum_le (hC1 : C *ᵥ 1 ≤ 1) (k : ℕ) (x : V) :
     calc ∑ y, cutoffCorrectionIter φ C (k + 1) x y ≤ ∑ y, (C + F * C) x y :=
           Finset.sum_le_sum fun y _ => iter_succ_le_input hC0 hφ0 hφθ hθf k x y
       _ = ∑ y, C x y + ∑ z, F x z * ∑ y, C z y := by
-          simp only [add_apply, mul_apply, Finset.sum_add_distrib, Finset.mul_sum]
+          simp only [Matrix.add_apply, Matrix.mul_apply, Finset.sum_add_distrib, Finset.mul_sum]
           rw [Finset.sum_comm]
       _ ≤ 1 + ∑ z, F x z * 1 := add_le_add (hrow x) (Finset.sum_le_sum fun z _ =>
           mul_le_mul_of_nonneg_left (hrow z) (cutoffCorrectionIter_nonneg hφ0 k x z))
@@ -163,7 +163,7 @@ theorem cutoffCorrection_residual_le_mul (hCf : ∀ x y, C x y ≤ f) (hf : 0 �
     (C - cutoffCorrectionIter φ C k + cutoffCorrectionIter φ C k * C) x y ≤ (k + 1) * f := by
   have h := input_le hC0 hφ0 hφθ hθf hCf hf hC1 k x y
   have h0 := cutoffCorrectionIter_nonneg (C := C) hφ0 k x y
-  simp only [add_apply, sub_apply] at h ⊢
+  simp only [Matrix.add_apply, Matrix.sub_apply] at h ⊢
   linarith
 
 include hC0 hφ0 hφθ hθf in
@@ -212,7 +212,7 @@ theorem cutoffCorrection_residual_dominates (hCf : ∀ x y, C x y ≤ f) (hf : 0
     mul_le_of_le_one_left (by linarith) (by linarith)
   have hadef : a = C x y + (F * C) x y := rfl
   rw [hcoef]
-  simp only [add_apply, sub_apply]
+  simp only [Matrix.add_apply, Matrix.sub_apply]
   nlinarith
 
 variable {A : Finset V}
@@ -229,7 +229,7 @@ theorem cutoffCorrectionIter_mem (hA : ∀ x y, C x y ≠ 0 → x ∈ A ∧ y �
     have hCxy : C x y = 0 := by
       by_contra h'; exact hxy (hA x y h')
     have hin : (C + cutoffCorrectionIter φ C k * C) x y = 0 := by
-      simp only [add_apply, mul_apply, hCxy, zero_add]
+      simp only [Matrix.add_apply, Matrix.mul_apply, hCxy, zero_add]
       refine Finset.sum_eq_zero fun z _ => ?_
       by_cases hE : cutoffCorrectionIter φ C k x z = 0
       · rw [hE, zero_mul]
@@ -252,7 +252,7 @@ theorem cutoffCorrection_residual_mem (hA : ∀ x y, C x y ≠ 0 → x ∈ A ∧
     cutoffCorrectionIter_mem hφ0 hφθ hθf hA k
   have hCxy : C x y = 0 := by by_contra h'; exact hxy (hA x y h')
   have hExy : cutoffCorrectionIter φ C k x y = 0 := by by_contra h'; exact hxy (hE x y h')
-  simp only [add_apply, sub_apply, mul_apply, hCxy, hExy, sub_zero, zero_add]
+  simp only [Matrix.add_apply, Matrix.sub_apply, Matrix.mul_apply, hCxy, hExy, sub_zero, zero_add]
   refine Finset.sum_eq_zero fun z _ => ?_
   by_cases hEz : cutoffCorrectionIter φ C k x z = 0
   · rw [hEz, zero_mul]
