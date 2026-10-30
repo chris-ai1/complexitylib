@@ -41,11 +41,17 @@ the frequencies `(a, b)` with `|b| < |a|` to two disjoint sets of frequencies wi
 and those with `0 < |b|`, `|a| ≤ |b|` to two disjoint sets with `|b| < |a|`. Each class therefore
 carries at least twice the mass of the other, up to small errors, so both are nearly empty. This
 is a finite, quantitative argument in the spirit of the proof of the relative property (T) of
-`SL₂(ℤ) ⋉ ℤ²` [Burger][Burger1991]. The idea of proving a uniform gap for a shear-translation
-graph on `ZMod n × ZMod n` by an elementary Fourier ping-pong argument, rather than by property
-(T), is taken from the OpenAI preprint on derandomizing logarithmic space [OpenAI2026LogSpace].
-The formulation here is our own: the frequency box, the shears by `±4`, the disjoint-image mass
-transfer and the constants differ from the preprint's.
+`SL₂(ℤ) ⋉ ℤ²` [Burger][Burger1991].
+
+The OpenAI preprint on derandomizing logarithmic space [OpenAI2026LogSpace] derives its uniform
+mixing bound from Shalom's property (T) results. The elementary route used here, a Fourier
+ping-pong on the small frequencies of `ZMod n × ZMod n` instead of property (T), follows the Lean
+development accompanying the preprint, the file
+[`AffineSampling.lean`](https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/lean/OAI/Computability/Logspace/AffineSampling.lean)
+at revision `7ef5c0cc`, namespace `ExactDerandomization.Analysis.Square`, lemmas `ping` and
+`squash`. The proof here is an independent formulation: the frequency box, the shears by `±4`,
+the disjoint-image mass transfer, the constants and all names differ. The works of Margulis,
+Gabber and Galil, Jimbo and Maruoka, Burger and Hoory, Linial and Wigderson are background.
 
 The explicit constants are far from optimal; the point is that they do not depend on `n`.
 
@@ -73,7 +79,9 @@ The explicit constants are far from optimal; the point is that they do not depen
 * [M. Burger, *Kazhdan constants for SL(3, ℤ)*][Burger1991]
 * [S. Hoory, N. Linial, A. Wigderson, *Expander graphs and their
   applications*][HooryLinialWigderson2006]
-* [OpenAI, *Exact derandomization of logarithmic space: L = RL = BPL*][OpenAI2026LogSpace]
+* [OpenAI, *Exact Derandomization of Logarithmic Space: L = RL = BPL*][OpenAI2026LogSpace],
+  and its Lean development, the file `AffineSampling.lean` linked above (revision `7ef5c0cc`,
+  `ExactDerandomization.Analysis.Square.ping`, `squash`), for the elementary route
 -/
 
 @[expose] public section
