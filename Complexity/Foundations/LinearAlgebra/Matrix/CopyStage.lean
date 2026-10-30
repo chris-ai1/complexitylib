@@ -354,12 +354,10 @@ copies of the overloaded vertices `O`. -/
 /-- **The copy step stays strictly upper triangular** for the lexicographic order on the copies:
 `(x, i)` comes before `(y, j)` when `x < y`, or `x = y` and `i < j`. Indexed by
 `Lex (V × Fin (m + 1))`, which is linearly ordered when `V` is, the copy step can be the input of
-the next stage. -/
-theorem copyStage_isStrictUpperTriangular [Preorder V] (hD : D.IsStrictUpperTriangular) :
-    ((copyStage χ m r D).submatrix ofLex ofLex).IsStrictUpperTriangular := by
-  intro a b hab
-  simp only [submatrix_apply, copyStage, copySplit, of_apply]
-  rw [hD fun h => hab (Prod.Lex.lt_iff.2 (Or.inl h)), mul_zero, zero_mul]
+the next stage (`Matrix.copySplit_isStrictUpperTriangular`). -/
+theorem copyStage_isStrictUpperTriangular [LT V] (hD : D.IsStrictUpperTriangular) :
+    ((copyStage χ m r D).submatrix ofLex ofLex).IsStrictUpperTriangular :=
+  copySplit_isStrictUpperTriangular hD
 
 theorem card_copyCover_le [DecidableEq V] (A O : Finset V) :
     #(copyCover (m := m) A O) ≤ #A + m * #O := by
