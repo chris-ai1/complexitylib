@@ -73,7 +73,11 @@ private instance (n : ℕ) : Fact (primeAtLeast n).Prime := ⟨primeAtLeast_prim
 variable (H : ℕ) (M : ℕ → ℕ)
 
 /-- The prime modulus of stage `l`: at least `2 ^ l` and at least the identifier bound `M l`. -/
-noncomputable abbrev stageModulus (l : ℕ) : ℕ := primeAtLeast (max (2 ^ l) (M l))
+noncomputable def stageModulus (l : ℕ) : ℕ := primeAtLeast (max (2 ^ l) (M l))
+
+/-- The stage modulus is prime, so its finite-field and seed instances are available to
+importers. -/
+instance (l : ℕ) : Fact (stageModulus M l).Prime := ⟨primeAtLeast_prime _⟩
 
 /-- The side `⌈P_l 2^(-l)⌉` of the retention box of stage `l`. -/
 noncomputable abbrev stageSide (l : ℕ) : ℕ := ⌈(stageModulus M l : ℝ) * (2⁻¹ : ℝ) ^ l⌉₊
