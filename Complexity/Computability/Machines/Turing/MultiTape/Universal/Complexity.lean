@@ -40,6 +40,10 @@ by `D`, even when the simulated configuration is large. The input scanner stream
 list with a binary countdown, whose arithmetic is charged to `P`. The configuration is still
 copied each round; this bound does not implement the buffered Hennie–Stearns simulation.
 
+`fun_prop` assembles a step from local rules that add up the bounds of the parts; only the
+transition lookup, `reads_inO`, `applyTapes_inO` and `moveInput_inO` carry hand-written bounds, and
+one comparison with `wTime` closes the step.
+
 ## Main definitions
 
 * `Turing.MultiTapeTM.Universal.eDesc`, `.eCfg`: the encodings of descriptions and configurations.
@@ -130,54 +134,45 @@ lemma tapeFields_deg : ComputableInDegree (fun t : Tape => (t.head, t.left, t.ri
     eTapeFields 1 1 :=
   of_eq fun _ => rfl
 
-@[local fun_prop]
-lemma tapeMk_deg : ComputableInDegree
+@[local fun_prop] lemma tapeMk_deg : ComputableInDegree
     (fun p : ℤ × List (Option ℕ) × List (Option ℕ) => Tape.mk p.1 p.2.1 p.2.2) eTapeFields eTape
     1 1 :=
   of_eq fun _ => rfl
 
-@[local fun_prop]
-lemma tapeHead_deg : ComputableInDegree Tape.head eTape encInt 1 1 :=
+@[local fun_prop] lemma tapeHead_deg : ComputableInDegree Tape.head eTape encInt 1 1 :=
   tapeFields_deg.fst'
 
-@[local fun_prop]
-lemma tapeLeft_deg : ComputableInDegree Tape.left eTape (encList eSym) 1 1 :=
+@[local fun_prop] lemma tapeLeft_deg : ComputableInDegree Tape.left eTape (encList eSym) 1 1 :=
   tapeFields_deg.snd'.fst'
 
-@[local fun_prop]
-lemma tapeRight_deg : ComputableInDegree Tape.right eTape (encList eSym) 1 1 :=
+@[local fun_prop] lemma tapeRight_deg : ComputableInDegree Tape.right eTape (encList eSym) 1 1 :=
   tapeFields_deg.snd'.snd'
 
 /-- The symbol under the head. -/
-@[local fun_prop]
-lemma read_deg : ComputableInDegree Tape.read eTape eSym 1 1 := by
+@[local fun_prop] lemma read_deg : ComputableInDegree Tape.read eTape eSym 1 1 := by
   unfold Tape.read
   fun_prop (disch := lia)
 
 /-- Writing under the head. -/
-@[local fun_prop]
-lemma write_deg : ComputableInDegree (fun p : Tape × Option ℕ => p.1.write p.2)
+@[local fun_prop] lemma write_deg : ComputableInDegree (fun p : Tape × Option ℕ => p.1.write p.2)
     (encPair eTape eSym) eTape 1 1 := by
   unfold Tape.write
   fun_prop (disch := lia)
 
 /-- A right move. -/
-@[local fun_prop]
-lemma movePos_deg :
+@[local fun_prop] lemma movePos_deg :
     ComputableInDegree (fun t : Tape => t.move .pos) eTape eTape 1 1 := by
   simp only [Tape.move]
   fun_prop (disch := lia)
 
 /-- A left move. -/
-@[local fun_prop]
-lemma moveNeg_deg :
+@[local fun_prop] lemma moveNeg_deg :
     ComputableInDegree (fun t : Tape => t.move .neg) eTape eTape 1 1 := by
   simp only [Tape.move]
   fun_prop (disch := lia)
 
 /-- Moving the head. -/
-@[local fun_prop]
-lemma move_deg : ComputableInDegree (fun p : Tape × SignType => p.1.move p.2)
+@[local fun_prop] lemma move_deg : ComputableInDegree (fun p : Tape × SignType => p.1.move p.2)
     (encPair eTape encSign) eTape 1 1 := by
   have ht := fst eTape encSign
   have hm := snd eTape encSign
@@ -190,8 +185,7 @@ lemma move_deg : ComputableInDegree (fun p : Tape × SignType => p.1.move p.2)
   rcases m with _ | _ | _ <;> rfl
 
 /-- Applying an action to a work tape: write, then move. -/
-@[local fun_prop]
-lemma apply_deg : ComputableInDegree (fun p : Tape × TapeAct =>
+@[local fun_prop] lemma apply_deg : ComputableInDegree (fun p : Tape × TapeAct =>
     p.1.apply p.2) (encPair eTape eTA) eTape 1 1 := by
   convert (show ComputableInDegree (fun p : Tape × TapeAct =>
     (if p.2.1.isSome then p.1.write (p.2.1.getD none) else p.1).move p.2.2)
@@ -505,160 +499,207 @@ lemma length_wAct_le : (eAct (wAct c)).length ≤ (eWCtx c).length + 6 := by
 
 end Lengths
 
-/-- A part of a step within the time `wTime` and linear space. -/
-abbrev WPart {β : Type} (f : WCtx → β) (enc : β ↪ List Bool) : Prop :=
-  ComputableInO f eWCtx enc wTime fun c => (eWCtx c).length
+/-! ### Rules for `fun_prop`
+
+Each rule adds up the time and space bounds of its arguments. -/
+
+section Rules
+
+variable {γ α : Type} {encIn : γ ↪ List Bool} {enc : α ↪ List Bool}
+  {T S T₁ S₁ T₂ S₂ T₃ S₃ : γ → ℕ}
+
+attribute [local fun_prop] ComputableInO ComputableInO.const ComputableInO.prod ComputableInO.fst'
+  ComputableInO.snd' ComputableInO.ite
+
+@[local fun_prop] lemma id_inO : ComputableInO (fun a : α => a) enc enc (fun a => (enc a).length)
+    fun a => (enc a).length :=
+  of_eq fun _ => rfl
+
+@[local fun_prop]
+lemma isSome_inO {o : γ → Option α} (h : ComputableInO o encIn (encOption enc) T S) :
+    ComputableInO (fun x => (o x).isSome) encIn encBool T S :=
+  (ComputableInDegree.isSome enc).inO_one.comp_linear h
+
+@[local fun_prop]
+lemma getD_inO {o : γ → Option α} (d : α) (h : ComputableInO o encIn (encOption enc) T S) :
+    ComputableInO (fun x => (o x).getD d) encIn enc T S :=
+  (ComputableInDegree.getD (enc₁ := enc) (enc := encOption enc) d).inO_one.comp_linear h
+
+variable {c : γ → SCfg} {a : γ → Act}
+
+@[local fun_prop] lemma cfgState_inO (h : ComputableInO c encIn eCfg T S) :
+    ComputableInO (fun x => (c x).state) encIn eSym T S :=
+  (h.of_enc_eq (encOut := eCfgFields) fun _ => rfl).fst'
+
+@[local fun_prop] lemma cfgInputPos_inO (h : ComputableInO c encIn eCfg T S) :
+    ComputableInO (fun x => (c x).inputPos) encIn encNat T S :=
+  (h.of_enc_eq (encOut := eCfgFields) fun _ => rfl).snd'.fst'
+
+@[local fun_prop] lemma cfgWorkTapes_inO (h : ComputableInO c encIn eCfg T S) :
+    ComputableInO (fun x => (c x).workTapes) encIn (encList eTape) T S :=
+  (h.of_enc_eq (encOut := eCfgFields) fun _ => rfl).snd'.snd'
+
+@[local fun_prop] lemma mkCfg_inO {s : γ → Option ℕ} {p : γ → ℕ} {ts : γ → List Tape}
+    (hs : ComputableInO s encIn eSym T₁ S₁) (hp : ComputableInO p encIn encNat T₂ S₂)
+    (ht : ComputableInO ts encIn (encList eTape) T₃ S₃) :
+    ComputableInO (fun x => (⟨s x, p x, ts x⟩ : SCfg)) encIn eCfg
+      (fun x => T₁ x + (T₂ x + T₃ x)) fun x => S₁ x + (S₂ x + S₃ x) :=
+  (hs.prod (hp.prod ht)).of_enc_eq fun _ => rfl
+
+/-- The fields of an action. -/
+abbrev eActFields := encPair encSign (encPair (encList eTA) (encPair eSym eSym))
+
+@[local fun_prop] lemma actInput_inO (h : ComputableInO a encIn eAct T S) :
+    ComputableInO (fun x => (a x).inputTape) encIn encSign T S :=
+  (h.of_enc_eq (encOut := eActFields) fun _ => rfl).fst'
+
+@[local fun_prop] lemma actWork_inO (h : ComputableInO a encIn eAct T S) :
+    ComputableInO (fun x => (a x).workTapes) encIn (encList eTA) T S :=
+  (h.of_enc_eq (encOut := eActFields) fun _ => rfl).snd'.fst'
+
+@[local fun_prop] lemma actOutput_inO (h : ComputableInO a encIn eAct T S) :
+    ComputableInO (fun x => (a x).output) encIn eSym T S :=
+  (h.of_enc_eq (encOut := eActFields) fun _ => rfl).snd'.snd'.fst'
+
+@[local fun_prop] lemma actState_inO (h : ComputableInO a encIn eAct T S) :
+    ComputableInO (fun x => (a x).state) encIn eSym T S :=
+  (h.of_enc_eq (encOut := eActFields) fun _ => rfl).snd'.snd'.snd'
+
+@[local fun_prop] lemma mkKey_inO {q : γ → ℕ} {i : γ → Option ℕ} {w : γ → List (Option ℕ)}
+    (hq : ComputableInO q encIn encUnary T₁ S₁) (hi : ComputableInO i encIn eSym T₂ S₂)
+    (hw : ComputableInO w encIn (encList eSym) T₃ S₃) :
+    ComputableInO (fun x => (⟨q x, i x, w x⟩ : Key)) encIn eKey
+      (fun x => T₁ x + (T₂ x + T₃ x)) fun x => S₁ x + (S₂ x + S₃ x) :=
+  (hq.prod (hi.prod hw)).of_enc_eq fun _ => rfl
+
+@[local fun_prop]
+lemma reads_inO' {ts : γ → List Tape} (h : ComputableInO ts encIn (encList eTape) T S) :
+    ComputableInO (fun x => (ts x).map Tape.read) encIn (encList eSym)
+      (fun x => T x + ((ts x).length + 1) * ((encList eTape (ts x)).length + 1))
+      fun x => S x + (encList eTape (ts x)).length :=
+  reads_inO.comp h
+
+@[local fun_prop] lemma moveInput_inO' {p : γ → ℕ} {i : γ → Option ℕ} {m : γ → SignType}
+    (hp : ComputableInO p encIn encNat T₁ S₁) (hi : ComputableInO i encIn eSym T₂ S₂)
+    (hm : ComputableInO m encIn encSign T₃ S₃) :
+    ComputableInO (fun x => moveInput (p x) (i x) (m x)) encIn encNat
+      (fun x => T₁ x + (T₂ x + T₃ x) + ((encPair encNat (encPair eSym encSign)
+        (p x, i x, m x)).length + ((encNat (p x)).length + 1) ^ 2))
+      fun x => S₁ x + (S₂ x + S₃ x) +
+        ((encPair encNat (encPair eSym encSign) (p x, i x, m x)).length + 1) :=
+  moveInput_inO.comp (hp.prod (hi.prod hm))
+
+@[local fun_prop] lemma applyTapes_inO' {ts : γ → List Tape} {as : γ → List TapeAct}
+    (ht : ComputableInO ts encIn (encList eTape) T₁ S₁)
+    (ha : ComputableInO as encIn (encList eTA) T₂ S₂) :
+    ComputableInO (fun x => applyTapes (ts x) (as x)) encIn (encList eTape)
+      (fun x => T₁ x + T₂ x + ((ts x).length + 1) *
+        ((encPair (encList eTape) (encList eTA) (ts x, as x)).length + 1))
+      fun x => S₁ x + S₂ x + (encPair (encList eTape) (encList eTA) (ts x, as x)).length :=
+  applyTapes_inO.comp (ht.prod ha)
+
+/-! ### A step without the input, assembled -/
 
 lemma le_wTime (c : WCtx) : (eWCtx c).length + 1 ≤ wTime c :=
   by simpa using length_le_wTime c (A := 0) (Nat.zero_le _) le_rfl (k := 1) (by omega)
+
+/-- The key of the transition, within the time `wTime` and linear space. -/
+lemma wKey_inO : ComputableInO wKey eWCtx eKey wTime fun c => (eWCtx c).length := by
+  unfold wKey
+  refine .mono (by fun_prop) 8 (fun c => ?_) fun c => ?_
+  all_goals
+    have h₁ := length_eWCtx c
+    have h₂ := le_wTime c
+    have h₃ := length_le_wTime c (A := c.cfg.workTapes.length) (by omega)
+      (B := (encList eTape c.cfg.workTapes).length) (by omega) (k := 1) (by omega)
+    simp only [eWCtx, Nat.mul_one, length_encPair] at *
+    omega
+
+/-- The transition to take, within the time `wTime`: the key is compared with each entry of the
+table. A comparison costs the entry length times the key length, and the entry is bounded by the
+description. -/
+@[local fun_prop]
+lemma wFound_inO : ComputableInO wFound eWCtx (encOption (encPair eKey eAct)) wTime
+    fun c => (eWCtx c).length := by
+  have htable := ((fst (encPair eDesc eCfg) eSym).fst'.of_enc_eq
+    (encOut := encPair encUnary (encPair encUnary (encList (encPair eKey eAct))))
+    (g := fun c : WCtx => (c.desc.tapes, c.desc.q₀, c.desc.table)) fun _ => rfl).snd'.snd'
+  have htest := (ComputableInO.eq eKey).comp ((snd eKey (encPair eKey eAct)).fst'.prod
+    (fst eKey (encPair eKey eAct)))
+  refine (findWith htest wKey_inO htable).mono 64 (fun c => ?_) fun c => ?_
+  all_goals
+    have hk := length_wKey_le c
+    have ht := length_wTable_le c
+    have hst := le_wTime c
+    have hlinear : (eWCtx c).length + 1 ≤
+        ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) := by nlinarith
+    have hlen := length_le_length_encList (encPair eKey eAct) c.desc.table
+  · have h₁ : listMax (fun e => (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
+        (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
+        ((eKey (e.1, wKey c).1).length + 1) *
+          ((eKey (e.1, wKey c).1).length + (eKey (e.1, wKey c).2).length + 1))
+        c.desc.table ≤ 32 * ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) :=
+      listMax_le fun e he => by
+        have h₁ := length_le_of_mem_table c he
+        have h₂ := length_le_encPair_left eKey eAct e
+        have hD := length_le_eDesc_of_mem_table c he
+        have h₃ : ((eKey e.1).length + 1) * ((eKey e.1).length + (eKey (wKey c)).length + 1)
+            ≤ ((eDesc c.desc).length + 1) * (5 * ((eWCtx c).length + 1)) :=
+          Nat.mul_le_mul (by omega) (by omega)
+        simp only [length_encPair] at *
+        nlinarith
+    have h₂ := length_le_wTime c (A := c.desc.table.length) (by omega)
+      (B := (eWCtx c).length) le_rfl le_rfl
+    have h₃ := Nat.mul_le_mul_left (c.desc.table.length + 1) (Nat.add_le_add
+      (Nat.add_le_add (hk.trans (show 4 * (eWCtx c).length + 4 ≤
+        4 * ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) by nlinarith))
+        (ht.trans (show (eWCtx c).length ≤
+          ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) by omega)))
+        h₁)
+    dsimp only [eWCtx, Function.comp_apply] at *
+    nlinarith
+  · have h₁ : listMax (fun e => (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
+        (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
+        (encPair eKey eKey (e.1, wKey c)).length) c.desc.table ≤
+        32 * ((eWCtx c).length + 1) :=
+      listMax_le fun e he => by
+        have h₁ := length_le_of_mem_table c he
+        have h₂ := length_le_encPair_left eKey eAct e
+        simp only [length_encPair] at *
+        omega
+    dsimp only [eWCtx, Function.comp_apply] at *
+    omega
+
+/-- The action of the transition to take, within the time `wTime`. -/
+@[local fun_prop]
+lemma wAct_inO : ComputableInO wAct eWCtx eAct wTime fun c => (eWCtx c).length := by
+  unfold wAct
+  fun_prop
 
 /-- One step of the simulation without the input, within the time `wTime` and linear space. -/
 public theorem stepWith_inO :
     ComputableInO (fun c : WCtx => stepWith c.desc c.cfg c.sym) eWCtx (encPair eCfg eSym)
       wTime fun c => (eWCtx c).length := by
-  -- the parts of the context
-  have hd := (fst (encPair eDesc eCfg) eSym).fst'
-  have hc := (fst (encPair eDesc eCfg) eSym).snd'
-  have hf := hc.of_enc_eq (encOut := eCfgFields)
-    (g := fun c : WCtx => (c.cfg.state, c.cfg.inputPos, c.cfg.workTapes)) fun _ => rfl
-  have htable := (hd.of_enc_eq (encOut := encPair encUnary (encPair encUnary
-    (encList (encPair eKey eAct)))) (g := fun c : WCtx => (c.desc.tapes, c.desc.q₀, c.desc.table))
-    fun _ => rfl).snd'.snd'
-  -- the key
-  have hreads : WPart (fun c => c.cfg.workTapes.map Tape.read) (encList eSym) := by
-    refine (reads_inO.comp hf.snd'.snd').mono 2 (fun c => ?_) fun c => ?_
-    all_goals
-      have h₁ := length_eWCtx c
-      have h₂ := le_wTime c
-      have h₃ := length_le_wTime c (A := c.cfg.workTapes.length) (by omega)
-        (B := (encList eTape c.cfg.workTapes).length) (by omega) (k := 1) (by omega)
-      simp only [eWCtx, Nat.mul_one] at *
-      omega
-  have hsym : WPart (fun c => c.sym) eSym :=
-    (snd (encPair eDesc eCfg) eSym).mono 1 (fun c => by
-      have := le_wTime c; dsimp only [eWCtx] at *; omega) fun c => by dsimp only [eWCtx]; omega
-  have hkey : WPart wKey eKey := by
-    refine ((((ComputableInDegree.getD (enc₁ := encUnary) 0).inO_one.comp_linear
-      hf.fst').prod (hsym.prod hreads)).mono 4 (fun c => ?_) fun c => ?_).of_enc_eq
-      fun _ => rfl
-    all_goals
-      have := le_wTime c
-      dsimp only [eWCtx, Function.comp_apply] at *
-      omega
-  -- the transition
-  have htest := (ComputableInO.eq eKey).comp ((snd eKey (encPair eKey eAct)).fst'.prod
-    (fst eKey (encPair eKey eAct)))
-  have hfound : WPart wFound (encOption (encPair eKey eAct)) := by
-    refine (findWith htest hkey htable).mono 64 (fun c => ?_) fun c => ?_
-    all_goals
-      have hk := length_wKey_le c
-      have ht := length_wTable_le c
-      have hst := le_wTime c
-      have hlinear : (eWCtx c).length + 1 ≤
-          ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) := by nlinarith
-      have hlen := length_le_length_encList (encPair eKey eAct) c.desc.table
-    · have h₁ : listMax (fun e => (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
-          (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
-          ((eKey (e.1, wKey c).1).length + 1) *
-            ((eKey (e.1, wKey c).1).length + (eKey (e.1, wKey c).2).length + 1))
-          c.desc.table ≤ 32 * ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) :=
-        listMax_le fun e he => by
-          have h₁ := length_le_of_mem_table c he
-          have h₂ := length_le_encPair_left eKey eAct e
-          have hD := length_le_eDesc_of_mem_table c he
-          have h₃ : ((eKey e.1).length + 1) * ((eKey e.1).length + (eKey (wKey c)).length + 1)
-              ≤ ((eDesc c.desc).length + 1) * (5 * ((eWCtx c).length + 1)) :=
-            Nat.mul_le_mul (by omega) (by omega)
-          simp only [length_encPair] at *
-          nlinarith
-      have h₂ := length_le_wTime c (A := c.desc.table.length) (by omega)
-        (B := (eWCtx c).length) le_rfl le_rfl
-      have h₃ := Nat.mul_le_mul_left (c.desc.table.length + 1) (Nat.add_le_add
-        (Nat.add_le_add (hk.trans (show 4 * (eWCtx c).length + 4 ≤
-          4 * ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) by nlinarith))
-          (ht.trans (show (eWCtx c).length ≤
-            ((eDesc c.desc).length + 1) * ((eWCtx c).length + 1) by omega)))
-          h₁)
-      dsimp only [eWCtx, Function.comp_apply] at *
-      nlinarith
-    · have h₁ : listMax (fun e => (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
-          (encPair eKey (encPair eKey eAct) (wKey c, e)).length +
-          (encPair eKey eKey (e.1, wKey c)).length) c.desc.table ≤
-          32 * ((eWCtx c).length + 1) :=
-        listMax_le fun e he => by
-          have h₁ := length_le_of_mem_table c he
-          have h₂ := length_le_encPair_left eKey eAct e
-          simp only [length_encPair] at *
-          omega
-      dsimp only [eWCtx, Function.comp_apply] at *
-      omega
-  -- the action and the new configuration
-  have hact := (((ComputableInDegree.getD (enc₁ := encPair eKey eAct)
-    (enc := encOption (encPair eKey eAct)) defaultEntry).inO_one.comp_linear hfound).snd').of_enc_eq
-    (encOut := encPair encSign (encPair (encList eTA) (encPair eSym eSym)))
-    (g := fun c => ((wAct c).inputTape, (wAct c).workTapes, (wAct c).output,
-      (wAct c).state)) fun _ => rfl
-  have hmove : WPart (fun c => moveInput c.cfg.inputPos (wKey c).input (wAct c).inputTape)
-      encNat := by
-    have hinput := (hkey.of_enc_eq (encOut := encPair encUnary (encPair eSym (encList eSym)))
-      (g := fun c => ((wKey c).state, (wKey c).input, (wKey c).work)) fun _ => rfl)
-      |>.snd'.fst'
-    refine (moveInput_inO.comp (hf.snd'.fst'.prod (hinput.prod hact.fst'))).mono 256
-      (fun c => ?_) fun c => ?_
-    all_goals
-      have hk := length_wKey_le c
-      have ha := length_wAct_le c
-      have hst := le_wTime c
-      have hp : (encPair encNat (encPair eSym encSign) (c.cfg.inputPos, (wKey c).input,
-          (wAct c).inputTape)).length ≤ 8 * ((eWCtx c).length + 1) := by
-        have := length_eWCtx c
-        simp only [eKey_apply, eAct_apply, length_encPair] at *
-        omega
-      have h₂ : ((encNat c.cfg.inputPos).length + 1) ^ 2 ≤ wTime c :=
-        Nat.le_add_left _ _
-    · dsimp only [eWCtx, Function.comp_apply] at *
-      omega
-    · dsimp only [eWCtx, Function.comp_apply] at *
-      omega
-  have happ : WPart (fun c => applyTapes c.cfg.workTapes (wAct c).workTapes)
-      (encList eTape) := by
-    refine (applyTapes_inO.comp (hf.snd'.snd'.prod hact.snd'.fst')).mono 16 (fun c => ?_)
-      fun c => ?_
-    all_goals
-      have ha := length_wAct_le c
-      have hst := le_wTime c
-      have hp : (encPair (encList eTape) (encList eTA) (c.cfg.workTapes,
-          (wAct c).workTapes)).length ≤ 4 * ((eWCtx c).length + 1) := by
-        have := length_eWCtx c
-        simp only [eAct_apply, length_encPair] at *
-        omega
-      have h₂ := length_le_wTime c (A := c.cfg.workTapes.length) (by omega)
-        (B := (eWCtx c).length) le_rfl (k := 1) (by omega)
-      rw [Nat.mul_one] at h₂
-    · have h₁ := Nat.mul_le_mul_left (c.cfg.workTapes.length + 1) (Nat.add_le_add_right hp 1)
-      dsimp only [eWCtx, Function.comp_apply] at *
-      nlinarith
-    · dsimp only [eWCtx, Function.comp_apply] at *
-      omega
-  -- the result
-  have hlive := (((hact.snd'.snd'.snd'.prod (hmove.prod happ)).of_enc_eq (encOut := eCfg)
-    (g := fun c => (⟨(wAct c).state, moveInput c.cfg.inputPos (wKey c).input
-      (wAct c).inputTape, applyTapes c.cfg.workTapes (wAct c).workTapes⟩ : SCfg))
-    fun _ => rfl).prod hact.snd'.snd'.fst')
-  have hhalt := ((((const (encMid := eSym) none).prod hf.snd').of_enc_eq (encOut := eCfg)
-    (g := fun c : WCtx => (⟨none, c.cfg.inputPos, c.cfg.workTapes⟩ : SCfg)) fun _ => rfl).prod
-      (const (encMid := eSym) none))
-  have hidle := hc.prod (const (encMid := eSym) none)
-  refine ((((ComputableInDegree.isSome encUnary).inO_one.comp_linear hf.fst').ite
-    (((ComputableInDegree.isSome (encPair eKey eAct)).inO_one.comp_linear hfound).ite
-      hlive hhalt) hidle).mono 16 (fun c => ?_) fun c => ?_).of_enc_eq fun c => ?_
-  · have := le_wTime c
-    dsimp only [eWCtx, Function.comp_apply] at *
-    split_ifs <;> omega
-  · dsimp only [eWCtx, Function.comp_apply] at *
-    split_ifs <;> omega
-  · rw [stepWith_eq]
-    simp only [Function.comp_apply, wKey]
+  simp only [stepWith_eq]
+  refine .mono (by fun_prop) 64 (fun c => ?_) fun c => ?_
+  all_goals
+    have hst := le_wTime c
+    have hl := length_eWCtx c
+    have ha := length_wAct_le c
+    simp only [eAct_apply, length_encPair] at ha
+    have hp : (encPair encNat (encPair eSym encSign)
+        (c.cfg.inputPos, c.sym, (wAct c).inputTape)).length ≤ 8 * ((eWCtx c).length + 1) := by
+      simp only [length_encPair] at *; omega
+    have ht : (encPair (encList eTape) (encList eTA)
+        (c.cfg.workTapes, (wAct c).workTapes)).length ≤ 4 * ((eWCtx c).length + 1) := by
+      simp only [length_encPair] at *; omega
+  · have hq : ((encNat c.cfg.inputPos).length + 1) ^ 2 ≤ wTime c := Nat.le_add_left _ _
+    have happ := length_le_wTime c (A := c.cfg.workTapes.length) (by omega)
+      (B := (eWCtx c).length) le_rfl (k := 1) (by omega)
+    have := Nat.mul_le_mul_left (c.cfg.workTapes.length + 1) (Nat.add_le_add_right ht 1)
+    rw [Nat.mul_one] at happ
+    split_ifs <;> nlinarith
+  · split_ifs <;> omega
 
 /-! ### A step -/
 
@@ -726,5 +767,7 @@ public theorem step_inO :
     omega
   · dsimp only [eCtx, eWCtx] at *
     omega
+
+end Rules
 
 end Turing.MultiTapeTM.Universal
