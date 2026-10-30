@@ -24,7 +24,8 @@ private def e : Fin 3 → ℚ := ![0, 0, 1]
 private def p : Fin 3 → ℚ := ![1 / 4, 1 / 2, 1]
 
 private theorem one_sub_C_mulVec_p : (1 - C) *ᵥ p = e := by
-  ext i; fin_cases i <;> norm_num [C, p, e, mulVec, dotProduct, Fin.sum_univ_three, one_apply]
+  ext i; fin_cases i <;>
+    norm_num [C, p, e, mulVec, dotProduct, Fin.sum_univ_three, Matrix.one_apply]
 
 /-- The correction removes the second transition. -/
 private def E : Matrix (Fin 3) (Fin 3) ℚ := !![0, 0, 0; 0, 0, 1 / 2; 0, 0, 0]
@@ -41,18 +42,18 @@ example : C - E + E * C = !![0, 1 / 2, 0; 0, 0, 0; 0, 0, 0] := by
 -- equation.
 example : (1 - (C - E + E * C)) *ᵥ p = ![0, 1 / 2, 1] := by
   rw [one_sub_correction_mulVec, one_sub_C_mulVec_p]
-  ext i; fin_cases i <;> simp [E, e, mulVec, dotProduct, Fin.sum_univ_three, one_apply]
+  ext i; fin_cases i <;> simp [E, e, mulVec, dotProduct, Fin.sum_univ_three, Matrix.one_apply]
 
 private theorem inv_one_sub_C : (1 - C)⁻¹ = 1 + C + C * C :=
   inv_eq_left_inv <| by
     ext i j; fin_cases i <;> fin_cases j <;>
-      simp [C, mul_apply, Fin.sum_univ_three, one_apply]
+      simp [C, Matrix.mul_apply, Fin.sum_univ_three, Matrix.one_apply]
 
 -- The acceptance probabilities of the corrected walk with the corrected reward are those of
 -- the original walk: `1 / 4` from `0`.
 example : ((1 - (C - E + E * C))⁻¹ *ᵥ (e + E *ᵥ e)) 0 = 1 / 4 := by
   rw [E_strict.inv_one_sub_correction_mulVec, inv_one_sub_C]
-  simp [C, e, mulVec, dotProduct, Fin.sum_univ_three, one_apply]
+  simp [C, e, mulVec, dotProduct, Fin.sum_univ_three, Matrix.one_apply]
   norm_num
 
 -- A nonnegative correction does not increase the row sums.
@@ -93,7 +94,7 @@ private def Es (l : ℕ) : Matrix (Fin 3) (Fin 3) ℚ := if l = 0 then C + C * C
 private def Ps (_ : ℕ) : Matrix (Fin 3) (Fin 3) ℚ := 1
 
 private theorem C_cube : C * C * C = 0 := by
-  ext i j; fin_cases i <;> fin_cases j <;> simp [C, mul_apply, Fin.sum_univ_three]
+  ext i j; fin_cases i <;> fin_cases j <;> simp [C, Matrix.mul_apply, Fin.sum_univ_three]
 
 private theorem hstep (l : ℕ) : Cs (l + 1) * Ps l = Ps l * (Cs l - Es l + Es l * Cs l) := by
   rcases l with _ | l
@@ -108,12 +109,12 @@ private theorem nonneg_C : ∀ i j, 0 ≤ C i j := by
 -- the row sum of the zero matrix.
 example : (rewardTransport (V := fun _ => Fin 3) Ps Es 1 *ᵥ e) 0 = 1 / 4 := by
   have h := sub_rewardTransport_mulVec_mem_Icc (V := fun _ => Fin 3) (C := Cs) (E := Es)
-    (P := Ps) (z := fun _ => 0) (fun _ i j => by simp [Ps, one_apply]; split_ifs <;> simp)
+    (P := Ps) (z := fun _ => 0) (fun _ i j => by simp [Ps, Matrix.one_apply]; split_ifs <;> simp)
     (fun _ => by simp [Ps]) (fun l i j => by unfold Cs; split_ifs <;> simp [nonneg_C])
     hstep (p := p) (e := e) (by simpa [Cs] using one_sub_C_mulVec_p)
     (fun i => by fin_cases i <;> norm_num [p])
     (fun i => by fin_cases i <;> norm_num [p])
-    (fun _ w => by simp [Ps, one_apply, eq_comm]) 1
+    (fun _ w => by simp [Ps, Matrix.one_apply, eq_comm]) 1
   have hp0 : p 0 = 1 / 4 := rfl
   simp only [Cs, Nat.add_one_ne_zero, ↓reduceIte, Matrix.zero_apply, Finset.sum_const_zero,
     Set.mem_Icc] at h
@@ -122,10 +123,10 @@ example : (rewardTransport (V := fun _ => Fin 3) Ps Es 1 *ᵥ e) 0 = 1 / 4 := by
 -- The transported rewards are nonnegative.
 example : 0 ≤ rewardTransport (V := fun _ => Fin 3) Ps Es 1 *ᵥ e :=
   rewardTransport_mulVec_nonneg (V := fun _ => Fin 3)
-    (fun _ i j => by simp only [Ps, one_apply]; split_ifs <;> simp)
+    (fun _ i j => by simp only [Ps, Matrix.one_apply]; split_ifs <;> simp)
     (fun l i j => by
       unfold Es; split_ifs
-      · fin_cases i <;> fin_cases j <;> norm_num [C, mul_apply, Fin.sum_univ_three]
+      · fin_cases i <;> fin_cases j <;> norm_num [C, Matrix.mul_apply, Fin.sum_univ_three]
       · simp)
     (fun i => by fin_cases i <;> simp [e]) 1
 
