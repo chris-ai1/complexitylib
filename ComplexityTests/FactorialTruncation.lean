@@ -57,7 +57,7 @@ private theorem Estar_eq : Estar = cutoffCorrectionFix φ C := by
   refine eq_cutoffCorrectionFix hC ?_
   ext x y
   fin_cases x <;> fin_cases y <;>
-    norm_num [cutoffCorrection, φ, C, Estar, mul_apply, Fin.sum_univ_three]
+    norm_num [cutoffCorrection, φ, C, Estar, Matrix.mul_apply, Fin.sum_univ_three]
 
 -- One iteration from zero misses the two-step entry entirely.
 example : cutoffCorrectionIter φ C 1 0 2 = 0 := by
@@ -72,7 +72,8 @@ example : cutoffCorrectionFix φ C 0 2 - cutoffCorrectionIter φ C 1 0 2 ≤
 -- After two iterations the iterate has reached the fixed point at `(0, 2)`.
 example : cutoffCorrectionIter φ C 2 0 2 = cutoffCorrectionFix φ C 0 2 := by
   rw [← Estar_eq]
-  norm_num [cutoffCorrectionIter, cutoffCorrection, φ, C, Estar, mul_apply, Fin.sum_univ_three]
+  norm_num [cutoffCorrectionIter, cutoffCorrection, φ, C, Estar, Matrix.mul_apply,
+    Fin.sum_univ_three]
 
 -- The corrected matrix of every iterate is nonnegative, and the hard cutoff leaves at most
 -- `θ f = 1 / 8` behind in every column.
