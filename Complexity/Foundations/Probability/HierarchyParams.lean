@@ -81,23 +81,29 @@ structure HierarchyParams (q cπ Cπ Cpair Cvar : ℝ) where
   k : ℕ
   /-- The number of extra copies, `D₀ - 1`. -/
   m : ℕ
-  /-- The copy thresholds, relative to the rate. -/
+  /-- The copy threshold up to which entries stay with the primary copy, relative to the rate. -/
   τ₀ : ℝ
+  /-- The copy threshold from which entries are split evenly, relative to the rate. -/
   τ₁ : ℝ
   /-- The copy cutoff. -/
   χ : ℝ → ℝ
-  /-- The detector score thresholds and cutoff. -/
+  /-- The detector score threshold through which the score vanishes. -/
   δ₀ : ℝ
+  /-- The detector score threshold from which the score is one. -/
   δ₁ : ℝ
+  /-- The detector score cutoff. -/
   ϕ : ℝ → ℝ
-  /-- The row-gate threshold and cutoff. -/
+  /-- The row-gate threshold. -/
   η : ℝ
+  /-- The row-gate cutoff. -/
   ρ : ℝ → ℝ
-  /-- The column multiplier and copy-weight cutoffs. -/
+  /-- The column-multiplier cutoff, applied to the running maximum of detector numbers. -/
   γ : ℝ → ℝ
+  /-- The copy-weight cutoff, applied to the running maximum of detector numbers. -/
   κ : ℝ → ℝ
-  /-- The detector ranks. -/
+  /-- The detector rank `J` of the column trials. -/
   J : ℕ
+  /-- The rank `K` of the row gates. -/
   K : ℕ
   /-- The column-count threshold `R*` of Lemma 4.3. -/
   R : ℝ
